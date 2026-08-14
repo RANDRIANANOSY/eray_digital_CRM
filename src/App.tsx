@@ -1,6 +1,8 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
 import RootLayout from "./routes/root.tsx";
 import AppLayout from "./routes/_app.tsx";
+import Login from "./routes/login.tsx";
+import Signup from "./routes/signup.tsx";
 import Dashboard from "./routes/_app.index.tsx";
 import Clients from "./routes/_app.clients.tsx";
 import ClientDetail, { clientLoader } from "./routes/_app.clients.$id.tsx";
@@ -16,6 +18,14 @@ const router = createBrowserRouter([
     path: "/",
     element: <RootLayout />,
     children: [
+      {
+        path: "login",
+        element: <Login />,
+      },
+      {
+        path: "signup",
+        element: <Signup />,
+      },
       {
         element: <AppLayout />,
         children: [

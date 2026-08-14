@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet, useRouteError } from "react-router";
 import { CRMProvider } from "@/lib/store";
+import { Toaster } from "@/components/ui/sonner";
 
 const queryClient = new QueryClient();
 
@@ -9,6 +10,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <CRMProvider>
         <Outlet />
+        <Toaster />
       </CRMProvider>
     </QueryClientProvider>
   );

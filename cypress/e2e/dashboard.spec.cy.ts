@@ -103,7 +103,7 @@ describe("CRM Dashboard with Mocked Data", () => {
   });
 
   it("should load the dashboard and show correct welcome message", () => {
-    cy.get("h1").should("contain.text", "Bonjour Léa");
+    cy.get("h1").should("contain.text", "Bonjour Adem Eray");
   });
 
   it("should calculate and render correct dynamic KPI statistics based on mock data", () => {

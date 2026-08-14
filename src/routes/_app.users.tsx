@@ -286,6 +286,28 @@ export default function UsersPage() {
                   <div className="flex items-center justify-end gap-2">
                     <button 
                       onClick={() => {
+                        setSelectedUser(m);
+                        setDialogType("details");
+                      }} 
+                      className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors"
+                      title="Voir les détails"
+                      data-cy="user-details-btn"
+                    >
+                      <Eye className="h-4.5 w-4.5" />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setSelectedUser(m);
+                        setDialogType("edit");
+                      }} 
+                      className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors"
+                      title="Modifier"
+                      data-cy="user-edit-btn"
+                    >
+                      <Edit className="h-4.5 w-4.5" />
+                    </button>
+                    <button 
+                      onClick={() => {
                         toast.success(`Réinitialisation du mot de passe de ${m.name}`, { description: "Un email de réinitialisation a été envoyé." });
                       }} 
                       className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors"

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams, useNavigate } from "react-router";
 import { Search, Bell, Plus, ChevronDown, Command, Menu, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoUrl from "@/assets/eray.jpg";
@@ -34,17 +34,52 @@ type AppTopbarProps = {
 type QuickAction = "client" | "activity" | "event" | "opportunity" | "project" | null;
 
 export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const search = Route.useSearch() || {};
   const query = search.q || "";
+  const [searchTerm, setSearchTerm] = useState(query);
+
+  useEffect(() => {
+    setSearchTerm(query);
+  }, [query]);
 
   const setSearch = useCallback((newSearch: { q?: string }) => {
     setSearchParams(newSearch.q ? { q: newSearch.q } : {});
   }, [setSearchParams]);
 
   const handleSearchChange = useCallback((val: string) => {
-    setSearch({ q: val || undefined });
-  }, [setSearch]);
+    setSearchTerm(val);
+  }, []);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setSearch({ q: searchTerm || undefined });
+    }, 150);
+    return () => window.clearTimeout(timeout);
+  }, [searchTerm, setSearch]);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("role");
+    navigate("/login");
+  }, [navigate]);
+
+  const [userName, setUserName] = useState("Léa Martin");
+  const [userRole, setUserRole] = useState("Manager Ventes");
+
+  useEffect(() => {
+    const name = localStorage.getItem("name") || sessionStorage.getItem("name");
+    const role = localStorage.getItem("role") || sessionStorage.getItem("role");
+    if (name) setUserName(name);
+    if (role) {
+      if (role === "admin") setUserRole("Administrateur");
+      else if (role === "manager") setUserRole("Manager");
+      else setUserRole("Commercial");
+    }
+  }, []);
 
   const [action, setAction] = useState<QuickAction>(null);
   const [theme, setTheme] = useState(() => {
@@ -97,7 +132,7 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="hidden md:flex items-center gap-2 h-9 px-3 rounded-lg hover:bg-muted transition-colors border border-border/50">
+            <button data-cy="company-menu-trigger" className="hidden md:flex items-center gap-2 h-9 px-3 rounded-lg hover:bg-muted transition-colors border border-border/50">
               <div className="h-6 w-6 rounded overflow-hidden bg-white flex items-center justify-center border border-border shadow-sm">
                 <img src={logoUrl} alt="Eray Logo" className="h-5 w-5 object-contain" />
               </div>
@@ -105,7 +140,7 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
               <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
+          <DropdownMenuContent data-cy="company-menu-content" align="start" className="w-56">
             <DropdownMenuLabel>Entreprises</DropdownMenuLabel>
             <DropdownMenuItem>Eray CRM</DropdownMenuItem>
             <DropdownMenuItem>Eray Digital EU</DropdownMenuItem>
@@ -125,7 +160,7 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
                 id="topbar-search"
                 aria-label="Recherche"
                 placeholder="Rechercher clients, activités, opportunités…"
-                value={query}
+                value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 className="w-full h-9 pl-9 pr-16 rounded-xl bg-muted/60 border border-border/40 hover:bg-muted focus:bg-card focus:border-ring outline-none text-sm transition-all"
               />
@@ -177,12 +212,12 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
               <button className="flex items-center gap-2 h-9 pl-1 pr-2 rounded-lg hover:bg-muted transition-colors">
                 <Avatar className="h-7 w-7">
                   <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-[11px] font-semibold">
-                    LM
+                    {userName.split(" ").map((n) => n[0]).join("").toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block text-left leading-tight">
-                  <div className="text-[12px] font-semibold">Léa Martin</div>
-                  <div className="text-[10px] text-muted-foreground">Manager Ventes</div>
+                  <div className="text-[12px] font-semibold">{userName}</div>
+                  <div className="text-[10px] text-muted-foreground">{userRole}</div>
                 </div>
               </button>
             </DropdownMenuTrigger>
@@ -191,7 +226,7 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
               <DropdownMenuItem>Profil</DropdownMenuItem>
               <DropdownMenuItem>Préférences</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Se déconnecter</DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleLogout}>Se déconnecter</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

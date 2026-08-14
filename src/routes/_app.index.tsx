@@ -24,6 +24,7 @@ export default function Dashboard() {
     "Pilotez vos ventes, activités et opportunités en un coup d'œil."
   );
   const { clients, deals, activities } = useCRM();
+  const userName = localStorage.getItem("name") || sessionStorage.getItem("name") || "Léa";
 
   // Calculate dynamic KPIs
   const totalPotential = deals.reduce((acc, d) => acc + d.amount, 0);
@@ -46,7 +47,7 @@ export default function Dashboard() {
       <div className="flex items-end justify-between flex-wrap gap-4">
         <div>
           <div className="text-sm text-muted-foreground">Aujourd'hui</div>
-          <h1 className="text-2xl lg:text-3xl font-bold mt-1">Bonjour Léa 👋</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold mt-1">Bonjour {userName} 👋</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Voici la synthèse de votre activité commerciale.
           </p>

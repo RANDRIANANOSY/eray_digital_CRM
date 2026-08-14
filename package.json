@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "cypress:run:coverage": "cypress run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -66,11 +67,15 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/preset-env": "^7.29.7",
+    "@cypress/code-coverage": "^4.0.3",
     "@eslint/js": "^9.32.0",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^5.2.0",
+    "babel-plugin-istanbul": "^8.0.0",
     "cypress": "^15.20.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
@@ -79,9 +84,11 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
     "nitro": "3.0.260603-beta",
+    "nyc": "^18.0.0",
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "vite-plugin-istanbul": "^9.0.1"
   }
 }

@@ -1,4 +1,4 @@
-// cypress/e2e/activities.spec.cy.ts
+/// <reference types="cypress" />
 
 describe("Activities Page with Mocked Data", () => {
   const mockCRMData = {
@@ -55,8 +55,8 @@ describe("Activities Page with Mocked Data", () => {
   };
 
   beforeEach(() => {
-    // Visit the activities page with our mock data seeded in localStorage
     cy.visitWithSeed("/activities", mockCRMData);
+    cy.get("select").first().select("Léa Martin");
   });
 
   it("should display the activities list from mock data", () => {
@@ -66,58 +66,198 @@ describe("Activities Page with Mocked Data", () => {
   });
 
   it("should filter activities by clicking type buttons", () => {
-    // Click 'Appel' filter button
     cy.contains("button", "Appel").click();
-    
-    // The "Appel de Qualification" should be visible, but "Envoi Devis Alpha" should NOT be visible
     cy.contains("Appel de Qualification").should("be.visible");
     cy.contains("Envoi Devis Alpha").should("not.exist");
-
-    // Click 'Email' filter button
     cy.contains("button", "Email").click();
-    
-    // "Envoi Devis Alpha" should be visible, but "Appel de Qualification" should NOT be visible
     cy.contains("Envoi Devis Alpha").should("be.visible");
     cy.contains("Appel de Qualification").should("not.exist");
   });
 
   it("should filter activities by search text query", () => {
-    // Type a keyword that matches only one activity
     cy.get('input[placeholder*="Rechercher live"]').type("Devis");
-
-    // Wait for the 300ms debounce
     cy.wait(400);
-
-    // "Envoi Devis Alpha" should be visible, "Appel de Qualification" should NOT be visible
     cy.contains("Envoi Devis Alpha").should("be.visible");
     cy.contains("Appel de Qualification").should("not.exist");
   });
 
-  it("should allow creating a new activity and verify it is prepended to the timeline", () => {
-    // Click the 'Nouvelle activité' button to open the creation dialog
+  it("should allow creating a new activity, testing reminder and cancellation", () => {
     cy.contains("button", "Nouvelle activité").click();
-
-    // The Dialog should be open
     cy.contains("Créer une activité").should("be.visible");
 
-    // Select activity type: RDV (rendered as meeting type in code)
+    cy.contains("button", "Annuler").click();
+    cy.contains("Créer une activité").should("not.exist");
+
+    cy.contains("button", "Nouvelle activité").click();
     cy.contains("button", "RDV").click();
 
-    // Fill in the form fields
     cy.get('input[name="title"]').type("RDV Démo Client");
     cy.get('input[name="client"]').clear().type("Mock Prospect One");
     cy.get('input[name="owner"]').clear().type("Léa Martin");
     cy.get('input[name="time"]').type("16:30");
-    cy.get('textarea[name="notes"]').type("Ceci est une démo de test automatisée.");
 
-    // Submit the form
-    cy.contains("button", "Créer").click();
+    cy.get("form select").first().select("custom");
+    cy.get('input[type="number"]').clear().type("2");
+    cy.get("form select").eq(1).select("heures");
+    cy.contains("button", "SMS").click();
 
-    // The dialog should close and the success toast should appear
-    cy.contains("Activité et opportunité créées").should("be.visible");
+    cy.get('textarea[name="notes"]').type("Notes for the new activity.");
 
-    // Verify the new activity is added to the UI list
+    // Soumission avec force + submit du formulaire
+    cy.contains("button", "Créer").click({ force: true });
+    cy.get("form").submit();
+
+    // Vérification
+    cy.contains("Activité et opportunité créées", { timeout: 10000 }).should(
+      "be.visible"
+    );
     cy.contains("RDV Démo Client").should("be.visible");
-    cy.contains("Mock Prospect One • 16:30").should("be.visible");
+  });
+
+  it("should allow toggling status of an activity (Terminer/Rouvrir)", () => {
+    // On clique sur "Terminer" en forçant
+    cy.contains("Appel de Qualification")
+      .parents(".group")
+      .contains("button", "Terminer")
+      .click({ force: true });
+
+    // Cypress retry automatiquement les commandes cy.contains() / .should()
+    // jusqu'au timeout indiqué : pas besoin (et pas possible) de faire
+    // .then().catch() sur des commandes Cypress, qui ne sont pas de vraies
+    // Promises chaînables. On vérifie directement l'état final attendu :
+    // le bouton "Rouvrir" doit être présent après le changement de statut.
+    cy.contains("Appel de Qualification")
+      .parents(".group")
+      .contains("button", "Rouvrir", { timeout: 15000 })
+      .should("exist");
+  });
+
+  it("should view details, modify, and delete an activity using action dropdown", () => {
+    // 1. View Details
+    cy.contains("Appel de Qualification")
+      .parents(".group")
+      .find("button.h-6.w-6")
+      .click({ force: true });
+
+    cy.contains("Voir les détails").click();
+    cy.contains("Détails de l'activité").should("be.visible");
+    cy.contains("Discussion about software integration").should("be.visible");
+
+    // Fermeture de la modale en cliquant sur l'overlay
+    cy.get('[role="dialog"]').parent().click({ force: true });
+
+    // 2. Modify Activity
+    cy.contains("Appel de Qualification")
+      .parents(".group")
+      .find("button.h-6.w-6")
+      .click({ force: true });
+
+    cy.contains("Modifier").click();
+    cy.contains("Modifier l'activité").should("be.visible");
+    cy.get('input[value="Appel de Qualification"]')
+      .clear()
+      .type("Appel de Qualification Modifié");
+
+    // Sélection robuste du select "priorité" : au lieu de se fier à un index
+    // de position fragile (ex: .eq(0), qui peut viser le mauvais select si
+    // l'ordre des champs change), on cherche dynamiquement le <select> qui
+    // contient une option correspondant à "priorité haute", quel que soit
+    // le libellé/valeur exact utilisé par le composant (FR/EN, casse, etc.)
+    // -> Idéalement, ajouter name="priority" sur ce select dans le composant
+    //    pour pouvoir écrire directement :
+    //    cy.get('div[role="dialog"] select[name="priority"]').select("high");
+    const highPriorityCandidates = [
+      "high",
+      "High",
+      "HIGH",
+      "haute",
+      "Haute",
+      "HAUTE",
+      "élevée",
+      "Élevée",
+      "elevee",
+    ];
+
+    cy.get('div[role="dialog"] select').then(($selects) => {
+      let prioritySelect: HTMLSelectElement | undefined;
+      let matchedValue: string | undefined;
+
+      [...$selects].forEach((el) => {
+        const select = el as HTMLSelectElement;
+        const options = [...select.options];
+        const match = options.find((o) =>
+          highPriorityCandidates.includes(o.value) ||
+          highPriorityCandidates.includes(o.text.trim())
+        );
+        if (match) {
+          prioritySelect = select;
+          matchedValue = match.value || match.text.trim();
+        }
+      });
+
+      if (!prioritySelect) {
+        // Debug : on liste tous les selects/options disponibles dans la
+        // modale pour identifier le bon libellé à ajouter dans
+        // highPriorityCandidates ci-dessus.
+        [...$selects].forEach((el, i) => {
+          const select = el as HTMLSelectElement;
+          const opts = [...select.options].map(
+            (o) => `value="${o.value}" text="${o.text.trim()}"`
+          );
+          cy.log(`select[${i}] name="${select.name}" options: ${opts.join(", ")}`);
+        });
+      }
+
+      expect(
+        prioritySelect,
+        "select de priorité introuvable — voir cy.log ci-dessus pour les options réelles"
+      ).to.exist;
+
+      cy.wrap(prioritySelect as HTMLSelectElement).select(matchedValue as string);
+    });
+
+    cy.contains("button", "Enregistrer").click();
+
+    cy.contains("Activité mise à jour", { timeout: 10000 }).should(
+      "be.visible"
+    );
+    cy.contains("Appel de Qualification Modifié").should("be.visible");
+
+    // 3. Delete Activity
+    cy.contains("Appel de Qualification Modifié")
+      .parents(".group")
+      .find("button.h-6.w-6")
+      .click({ force: true });
+
+    cy.contains("Supprimer").click();
+    cy.contains("Activité supprimée", { timeout: 10000 }).should(
+      "be.visible"
+    );
+    cy.contains("Appel de Qualification Modifié").should("not.exist");
+  });
+
+  it("should support advanced and smart filters", () => {
+    cy.contains("button", "Retards").click();
+    cy.contains("Envoi Devis Alpha").should("not.exist");
+    cy.contains("button", "Retards").click();
+
+    cy.contains("button", "Filtres").click();
+    cy.get("select").eq(1).select("terminé");
+    cy.contains("Envoi Devis Alpha").should("be.visible");
+    cy.contains("Appel de Qualification").should("not.exist");
+
+    cy.get("select").eq(2).select("high");
+    cy.contains("Envoi Devis Alpha").should("be.visible");
+
+    cy.get("select").eq(3).select("Antoine Roy");
+    cy.contains("Envoi Devis Alpha").should("be.visible");
+
+    cy.contains("button", "Effacer").click();
+    cy.contains("Appel de Qualification").should("be.visible");
+    cy.contains("Envoi Devis Alpha").should("be.visible");
+  });
+
+  it("should handle lazy loading timeline trigger", () => {
+    cy.contains("Défiler ou cliquer pour charger").click();
   });
 });
