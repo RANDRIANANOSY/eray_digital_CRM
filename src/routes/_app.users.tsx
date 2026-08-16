@@ -1,6 +1,6 @@
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useState, useMemo, useEffect } from "react";
-import { Plus, Shield, Users as UsersIcon, Eye, Edit, Trash2, KeyRound, Power, Search, X } from "lucide-react";
+import { Plus, Shield, Users as UsersIcon, Eye, Edit, Trash2, KeyRound, Power, Search, X, Mail, Phone, Clock } from "lucide-react";
 import { members as initialMembers, Member } from "@/lib/crm-data";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -371,54 +371,110 @@ export default function UsersPage() {
       {/* Modals for Details and Edit */}
       {selectedUser && (
         <Dialog open={dialogType !== null} onOpenChange={(open) => !open && setDialogType(null)}>
-          <DialogContent>
+          <DialogContent className="p-0 overflow-hidden rounded-2xl max-w-lg gap-0 z-50">
             {dialogType === "details" ? (
               <>
-                <DialogHeader>
-                  <DialogTitle>Détails du membre</DialogTitle>
+                <DialogHeader className="border-b border-border/40 pb-4 bg-gradient-to-r from-background to-muted/20 px-6 pt-6">
+                  <div className="flex items-center gap-3">
+                    <span className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                      <UsersIcon className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+                        Détails du membre
+                      </DialogTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Fiche collaborateur & permissions
+                      </p>
+                    </div>
+                  </div>
                 </DialogHeader>
-                <div className="py-4 space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
+
+                <div className="p-6 space-y-5 bg-card">
+                  {/* Profile Header Card */}
+                  <div className="p-5 rounded-2xl border border-border/60 bg-gradient-to-br from-background via-card to-muted/10 shadow-sm relative overflow-hidden group flex items-center gap-4">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/8 transition-all duration-500" />
+                    <Avatar className="h-16 w-16 ring-4 ring-primary/10 shadow-sm shrink-0">
                       <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-lg font-bold">
                         {selectedUser.initials}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <h3 className="font-semibold text-lg">{selectedUser.name}</h3>
-                      <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-lg text-foreground truncate leading-snug">
+                        {selectedUser.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground truncate mt-1 flex items-center gap-1.5">
+                        <Mail className="h-3.5 w-3.5 text-muted-foreground/75" /> {selectedUser.email}
+                      </p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mt-4 bg-muted/50 p-4 rounded-xl">
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Rôle</div>
-                      <div className="font-medium mt-1">{selectedUser.role}</div>
+
+                  {/* Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-3.5">
+                    {/* Role Card */}
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Rôle</span>
+                      <div className="mt-1 flex items-center gap-2">
+                        <span className="h-7 w-7 rounded-lg bg-primary/5 text-primary flex items-center justify-center">
+                          <Shield className="h-3.5 w-3.5" />
+                        </span>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${roleColor[selectedUser.role] || "bg-muted text-foreground"}`}>
+                          {selectedUser.role}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Équipe</div>
-                      <div className="font-medium mt-1">{selectedUser.team}</div>
+
+                    {/* Équipe Card */}
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Équipe</span>
+                      <div className="font-semibold text-sm mt-1 flex items-center gap-2 text-foreground">
+                        <span className="h-7 w-7 rounded-lg bg-violet-500/5 text-violet-500 flex items-center justify-center">
+                          <UsersIcon className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="truncate text-xs">{selectedUser.team}</span>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Statut</div>
-                      <div className="font-medium mt-1">{selectedUser.status}</div>
+
+                    {/* Statut Card */}
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Statut</span>
+                      <div className="mt-1 flex items-center">
+                        <span className={statusBadgeClass[selectedUser.status] || "bg-muted text-foreground"}>
+                          {selectedUser.status}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Téléphone</div>
-                      <div className="font-medium mt-1">{selectedUser.phone || "—"}</div>
+
+                    {/* Téléphone Card */}
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Téléphone</span>
+                      <div className="font-semibold text-sm mt-1 flex items-center gap-2 text-foreground">
+                        <span className="h-7 w-7 rounded-lg bg-emerald-500/5 text-emerald-500 flex items-center justify-center">
+                          <Phone className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="truncate text-xs">{selectedUser.phone || "—"}</span>
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Dernière activité</div>
-                      <div className="font-medium mt-1">{selectedUser.lastActive}</div>
+
+                    {/* Dernière activité Card */}
+                    <div className="col-span-2 p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-20">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dernière activité</span>
+                      <div className="font-semibold text-sm mt-1 flex items-center gap-2 text-foreground">
+                        <span className="h-7 w-7 rounded-lg bg-amber-500/5 text-amber-500 flex items-center justify-center">
+                          <Clock className="h-3.5 w-3.5" />
+                        </span>
+                        <span>{selectedUser.lastActive}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </>
             ) : (
               <>
-                <DialogHeader>
+                <DialogHeader className="px-6 pt-6 pb-2">
                   <DialogTitle>Modifier le membre</DialogTitle>
                 </DialogHeader>
-                <div className="py-4 space-y-4">
+                <div className="px-6 pb-4 space-y-4">
                   <div>
                     <Label>Nom</Label>
                     <Input 
@@ -462,7 +518,7 @@ export default function UsersPage() {
                     </select>
                   </div>
                 </div>
-                <DialogFooter>
+                <DialogFooter className="px-6 py-4 bg-muted/20 border-t border-border/40">
                   <Button variant="outline" onClick={() => setDialogType(null)}>Annuler</Button>
                   <Button onClick={handleEditSave} className="gradient-brand text-white border-0">Enregistrer</Button>
                 </DialogFooter>

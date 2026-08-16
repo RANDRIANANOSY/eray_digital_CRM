@@ -67,38 +67,94 @@ export function NewClientDialog(props: BaseProps) {
   const setOpen = (o: boolean) => {
     setInternalOpen(o);
     props.onOpenChange?.(o);
+    if (!o) resetForm();
+  };
+
+  const [formError, setFormError] = useState("");
+  const [duplicateWarning, setDuplicateWarning] = useState<Client | null>(null);
+  const [pendingClientData, setPendingClientData] = useState<Client | null>(null);
+
+  const resetForm = () => {
+    setFormError("");
+    setDuplicateWarning(null);
+    setPendingClientData(null);
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setFormError("");
+    
     const fd = new FormData(e.currentTarget);
-    const firstName = fd.get("firstName")?.toString().trim() || "Nouveau";
-    const lastName = fd.get("lastName")?.toString().trim() || "Client";
-    const fullName = `${firstName} ${lastName}`;
+    const firstName = fd.get("firstName")?.toString().trim() || "";
+    const lastName = fd.get("lastName")?.toString().trim() || "";
+    const company = fd.get("company")?.toString().trim() || "";
+    const rawEmail = fd.get("email")?.toString().trim() || "";
+    const rawPhone = fd.get("phone")?.toString().trim().replace(/\s+/g, "") || "";
+
+    // Règles de validation
+    if (!firstName && !lastName && !company) {
+      setFormError("Nom ou entreprise obligatoire.");
+      return;
+    }
+
+    if (!rawEmail && !rawPhone) {
+      setFormError("Téléphone ou email obligatoire.");
+      return;
+    }
+
+    if (rawEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      setFormError("Format d'email invalide.");
+      return;
+    }
+
+    // Check doublon
+    const duplicate = clients.find(c => {
+      const cEmail = c.email.trim();
+      const cPhone = c.phone.trim().replace(/\s+/g, "");
+      if (rawEmail && cEmail.toLowerCase() === rawEmail.toLowerCase()) return true;
+      if (rawPhone && cPhone === rawPhone) return true;
+      return false;
+    });
+
+    const fullName = [firstName, lastName].filter(Boolean).join(" ") || "Inconnu";
     
     const newClient: Client = {
       id: `c_${Date.now()}`,
       name: fullName,
-      company: fd.get("company")?.toString() || "Entreprise Inconnue",
-      role: fd.get("role")?.toString() || "Contact",
-      email: fd.get("email")?.toString() || "contact@client.com",
-      phone: fd.get("phone")?.toString() || "+33 6 00 00 00 00",
+      company: company || "Non renseignée",
+      role: fd.get("role")?.toString() || "",
+      email: rawEmail,
+      phone: fd.get("phone")?.toString().trim() || "",
       status: (fd.get("status")?.toString() as any) || "prospect",
       priority: (fd.get("priority")?.toString() as any) || "medium",
       owner: fd.get("owner")?.toString() || "Léa Martin",
-      city: fd.get("address")?.toString() || "Paris",
+      city: fd.get("address")?.toString() || "",
       sector: "B2B Services",
       value: Number(fd.get("value")) || 0,
       tags: ["Nouveau"],
-      initials: `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase(),
+      initials: (firstName.charAt(0) || company.charAt(0) || "U").toUpperCase() + (lastName.charAt(0) || "").toUpperCase(),
       color: "from-blue-500 to-indigo-600",
-      lastContact: "Aujourd'hui"
+      lastContact: "Aujourd'hui",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      createdBy: localStorage.getItem("name") || "Utilisateur",
+      updatedBy: localStorage.getItem("name") || "Utilisateur",
     };
 
-    setClients([newClient, ...clients]);
-    props.onAdd?.(newClient);
+    if (duplicate) {
+      setDuplicateWarning(duplicate);
+      setPendingClientData(newClient);
+      return;
+    }
+
+    finalizeCreation(newClient);
+  };
+
+  const finalizeCreation = (clientData: Client) => {
+    setClients([clientData, ...clients]);
+    props.onAdd?.(clientData);
     setOpen(false);
-    toast.success("Client créé avec succès", { description: `${fullName} a été ajouté à la base de données.` });
+    toast.success("Client créé avec succès", { description: `${clientData.name} a été ajouté à la base de données.` });
   };
 
   return (
@@ -112,46 +168,74 @@ export function NewClientDialog(props: BaseProps) {
       </DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Créer un client</DialogTitle>
+          <DialogTitle>{duplicateWarning ? "⚠️ Client existant détecté" : "Créer un client"}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Prénom"><input name="firstName" className={inputCls} required placeholder="Jean" /></Field>
-            <Field label="Nom"><input name="lastName" className={inputCls} required placeholder="Dupont" /></Field>
-            <Field label="Entreprise"><input name="company" className={inputCls} placeholder="Ex: TechCorp" required /></Field>
-            <Field label="Fonction"><input name="role" className={inputCls} placeholder="Ex : Directeur Informatique" /></Field>
-            <Field label="Email"><input name="email" type="email" className={inputCls} placeholder="jean.dupont@techcorp.com" required /></Field>
-            <Field label="Téléphone"><input name="phone" className={inputCls} placeholder="+33 6 12 34 56 78" /></Field>
-            <Field label="Statut">
-              <select name="status" className={selectCls} defaultValue="prospect">
-                <option value="prospect">Prospect</option>
-                <option value="actif">Actif</option>
-                <option value="vip">VIP</option>
-                <option value="inactif">Inactif</option>
-              </select>
-            </Field>
-            <Field label="Priorité">
-              <select name="priority" className={selectCls} defaultValue="medium">
-                <option value="high">Haute</option>
-                <option value="medium">Moyenne</option>
-                <option value="low">Basse</option>
-              </select>
-            </Field>
-            <Field label="Valeur estimée (MGA)">
-              <input name="value" type="number" className={inputCls} placeholder="0" defaultValue="25000" />
-            </Field>
-            <Field label="Responsable">
-              <input name="owner" className={inputCls} defaultValue="Léa Martin" />
-            </Field>
-            <Field label="Adresse / Ville" className="col-span-2">
-              <input name="address" className={inputCls} placeholder="Paris, France" />
-            </Field>
+        
+        {duplicateWarning ? (
+          <div className="py-4 space-y-4">
+            <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-700 rounded-xl text-sm">
+              <p className="font-semibold mb-2">Un client avec ce téléphone ou cette adresse email existe déjà.</p>
+              <ul className="space-y-1">
+                <li><span className="font-semibold">Nom :</span> {duplicateWarning.name}</li>
+                <li><span className="font-semibold">Entreprise :</span> {duplicateWarning.company}</li>
+                <li><span className="font-semibold">Email :</span> {duplicateWarning.email}</li>
+                <li><span className="font-semibold">Téléphone :</span> {duplicateWarning.phone}</li>
+              </ul>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDuplicateWarning(null)}>Annuler</Button>
+              <Button type="button" onClick={() => {
+                setOpen(false);
+                // Si on était sur un vrai routeur, on redirigerait vers la fiche du client ici.
+                toast.info("Affichage du client existant (simulation)");
+              }}>Voir la fiche</Button>
+            </DialogFooter>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-            <Button type="submit" className="gradient-brand text-white border-0">Créer le client</Button>
-          </DialogFooter>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+            {formError && (
+              <div className="p-3 bg-red-500/10 border-l-4 border-l-red-500 text-red-600 rounded-lg text-xs font-semibold">
+                {formError}
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Prénom"><input name="firstName" className={inputCls} placeholder="Jean" /></Field>
+              <Field label="Nom"><input name="lastName" className={inputCls} placeholder="Dupont" /></Field>
+              <Field label="Entreprise"><input name="company" className={inputCls} placeholder="Ex: TechCorp" /></Field>
+              <Field label="Fonction"><input name="role" className={inputCls} placeholder="Ex : Directeur Informatique" /></Field>
+              <Field label="Email"><input name="email" type="email" className={inputCls} placeholder="jean.dupont@techcorp.com" /></Field>
+              <Field label="Téléphone"><input name="phone" className={inputCls} placeholder="+33 6 12 34 56 78" /></Field>
+              <Field label="Statut">
+                <select name="status" className={selectCls} defaultValue="prospect">
+                  <option value="prospect">Prospect</option>
+                  <option value="actif">Actif</option>
+                  <option value="vip">VIP</option>
+                  <option value="inactif">Inactif</option>
+                </select>
+              </Field>
+              <Field label="Priorité">
+                <select name="priority" className={selectCls} defaultValue="medium">
+                  <option value="high">Haute</option>
+                  <option value="medium">Moyenne</option>
+                  <option value="low">Basse</option>
+                </select>
+              </Field>
+              <Field label="Valeur estimée (MGA)">
+                <input name="value" type="number" className={inputCls} placeholder="0" defaultValue="25000" />
+              </Field>
+              <Field label="Responsable">
+                <input name="owner" className={inputCls} defaultValue="Léa Martin" />
+              </Field>
+              <Field label="Adresse / Ville" className="col-span-2">
+                <input name="address" className={inputCls} placeholder="Paris, France" />
+              </Field>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+              <Button type="submit" className="gradient-brand text-white border-0">Créer le client</Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -266,7 +350,8 @@ export function NewOpportunityDialog(props: BaseProps) {
       probability: Number(fd.get("probability")) || 50,
       owner: fd.get("owner")?.toString() || "Léa Martin",
       lastActivity: "Création opportunité",
-      nextAction: "Rendez-vous de découverte",
+      nextAction: fd.get("nextAction")?.toString().trim() || "Rendez-vous de découverte",
+      nextActionDate: fd.get("nextActionDate")?.toString() || "",
       closeDate: fd.get("closeDate")?.toString() || "15/09/2026",
       stage: (fd.get("stage")?.toString() as Stage) || "Nouveau lead",
     };
@@ -301,6 +386,12 @@ export function NewOpportunityDialog(props: BaseProps) {
               <select name="stage" className={selectCls} defaultValue="Nouveau lead">
                 {stagesList.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
+            </Field>
+            <Field label="Prochaine action">
+              <input name="nextAction" className={inputCls} placeholder="Ex: Appel de découverte" />
+            </Field>
+            <Field label="Date de prochaine action">
+              <input name="nextActionDate" type="date" className={inputCls} />
             </Field>
             <Field label="Date de clôture prévue" className="col-span-2">
               <input name="closeDate" className={inputCls} defaultValue="15/09/2026" placeholder="JJ/MM/AAAA" />

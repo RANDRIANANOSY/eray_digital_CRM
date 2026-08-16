@@ -3,6 +3,7 @@ import { usePageMeta } from "@/hooks/use-page-meta";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useFilteredCollection } from "@/hooks/use-filtered-collection";
 import { useVirtualizer } from "@/hooks/use-virtualizer";
+import { toast } from "sonner";
 import {
   LayoutGrid,
   List as ListIcon,
@@ -22,6 +23,7 @@ import {
   TrendingUp,
   Activity,
   X,
+  Archive,
 } from "lucide-react";
 import { projectsForCompany, clientHistorySummary } from "@/lib/crm-data";
 import { useCRM } from "@/lib/store";
@@ -79,6 +81,7 @@ export default function ClientsPage() {
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showArchived, setShowArchived] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,12 +93,13 @@ export default function ClientsPage() {
   const tagOptions = useMemo(() => Array.from(new Set(clientList.flatMap((c) => c.tags || []))), [clientList]);
 
   const filters = useMemo(() => [
+    (c: any) => showArchived ? c.archived === true : !c.archived,
     (c: any) => selectedStatuses.length === 0 || selectedStatuses.includes(c.status),
     (c: any) => selectedOwners.length === 0 || selectedOwners.includes(c.owner),
     (c: any) => selectedPriorities.length === 0 || selectedPriorities.includes(c.priority),
     (c: any) => selectedSectors.length === 0 || selectedSectors.includes(c.sector),
     (c: any) => selectedTags.length === 0 || c.tags.some((t: string) => selectedTags.includes(t)),
-  ], [selectedStatuses, selectedOwners, selectedPriorities, selectedSectors, selectedTags]);
+  ], [selectedStatuses, selectedOwners, selectedPriorities, selectedSectors, selectedTags, showArchived]);
 
   const searchFields = useMemo(() => ["name" as const, "company" as const], []);
 
@@ -126,14 +130,50 @@ export default function ClientsPage() {
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, activePage]);
 
+  const handleArchive = (id: string) => {
+    setClientList(
+      clientList.map((c) =>
+        c.id === id ? { ...c, archived: !c.archived, updatedAt: new Date().toISOString() } : c
+      )
+    );
+  };
+
   const handleDelete = (id: string) => {
     setClientList(clientList.filter((c) => c.id !== id));
+    toast.success("Client supprimé avec succès");
   };
+
+  const [editError, setEditError] = useState("");
 
   const handleEditSave = () => {
     if (selectedClient) {
+      setEditError("");
+      const name = selectedClient.name?.trim() || "";
+      const company = selectedClient.company?.trim() || "";
+      const email = selectedClient.email?.trim() || "";
+      const phone = selectedClient.phone?.trim() || "";
+
+      if (!name && !company) {
+        setEditError("Le nom ou l'entreprise est obligatoire.");
+        return;
+      }
+      if (!email && !phone) {
+        setEditError("L'email ou le téléphone est obligatoire.");
+        return;
+      }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setEditError("Format d'email invalide.");
+        return;
+      }
+
+      const updatedClient = {
+        ...selectedClient,
+        updatedAt: new Date().toISOString(),
+        updatedBy: localStorage.getItem("name") || "Utilisateur"
+      };
+
       setClientList(
-        clientList.map((c) => (c.id === selectedClient.id ? selectedClient : c)),
+        clientList.map((c) => (c.id === selectedClient.id ? updatedClient : c)),
       );
       setDialogType(null);
       setSelectedClient(null);
@@ -614,6 +654,11 @@ export default function ClientsPage() {
                 client={selectedClient}
                 onClose={() => setDialogType(null)}
                 onEdit={() => setDialogType("edit")}
+                onArchive={() => {
+                  handleArchive(selectedClient.id);
+                  setDialogType(null);
+                  toast.success(selectedClient.archived ? "Client désarchivé" : "Client archivé");
+                }}
               />
             ) : (
               <>
@@ -621,6 +666,11 @@ export default function ClientsPage() {
                   <DialogTitle>Modifier le client</DialogTitle>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
+                  {editError && (
+                    <div className="p-3 bg-red-500/10 border-l-4 border-l-red-500 text-red-600 rounded-lg text-xs font-semibold">
+                      {editError}
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
                       <Label className="text-xs font-semibold text-foreground/80">Nom complet</Label>
@@ -725,10 +775,12 @@ function ClientDetailsModal({
   client,
   onClose,
   onEdit,
+  onArchive,
 }: {
   client: any;
   onClose: () => void;
   onEdit: () => void;
+  onArchive: () => void;
 }) {
   const projs = projectsForCompany(client.company);
   const hist = clientHistorySummary(client.name);
@@ -809,6 +861,12 @@ function ClientDetailsModal({
               className="h-9 px-4 rounded-lg text-sm font-semibold gradient-brand text-white inline-flex items-center gap-2 hover:opacity-90 transition-opacity shadow-sm"
             >
               <Edit className="h-3.5 w-3.5" /> Modifier
+            </button>
+            <button
+              onClick={onArchive}
+              className="h-9 px-4 rounded-lg text-sm font-semibold bg-rose-500/10 text-rose-600 hover:bg-rose-500/20 inline-flex items-center gap-2 transition-colors shadow-sm border border-rose-200"
+            >
+              <Archive className="h-3.5 w-3.5" /> {client.archived ? "Désarchiver" : "Archiver"}
             </button>
           </div>
         </div>
@@ -1022,6 +1080,27 @@ function ClientDetailsModal({
             </div>
           </div>
         )}
+
+        {/* Audit & Historique */}
+        <div className="rounded-xl border border-border p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            Informations d'audit
+          </h3>
+          <div className="space-y-2 text-sm">
+            <CommercialRow label="Créé le">
+              <span className="text-xs font-medium text-muted-foreground">{client.createdAt ? new Date(client.createdAt).toLocaleString("fr-FR") : "—"}</span>
+            </CommercialRow>
+            <CommercialRow label="Créé par">
+              <span className="text-xs font-medium text-muted-foreground">{client.createdBy || "Système"}</span>
+            </CommercialRow>
+            <CommercialRow label="Dernière modif.">
+              <span className="text-xs font-medium text-muted-foreground">{client.updatedAt ? new Date(client.updatedAt).toLocaleString("fr-FR") : "—"}</span>
+            </CommercialRow>
+            <CommercialRow label="Modifié par">
+              <span className="text-xs font-medium text-muted-foreground">{client.updatedBy || "—"}</span>
+            </CommercialRow>
+          </div>
+        </div>
 
         {/* Actions rapides */}
         <div className="grid grid-cols-3 gap-2 pt-1">

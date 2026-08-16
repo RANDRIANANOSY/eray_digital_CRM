@@ -4,7 +4,7 @@ import { useFilteredCollection } from "@/hooks/use-filtered-collection";
 import { useVirtualizer } from "@/hooks/use-virtualizer";
 import {
   Filter, Search, MoreHorizontal, Calendar as CalendarIcon,
-  Eye, Edit, Trash2, X, CheckCircle2, Clock, AlertCircle,
+  Eye, Edit, Trash2, X, FileText, CheckCircle2, Clock, AlertCircle,
   Lock, Loader2, ArrowRight, Plus, HelpCircle, RefreshCw,
   Shield, User, Briefcase, Bell, Mail, MessageSquare, Laptop
 } from "lucide-react";
@@ -1211,60 +1211,128 @@ export default function ActivitiesPage() {
       {/* Details and Edit Dialog */}
       {selectedAct && (
         <Dialog open={dialogType !== null} onOpenChange={(open) => !open && setDialogType(null)}>
-          <DialogContent className="z-50">
+          <DialogContent className="p-0 overflow-hidden rounded-2xl max-w-lg gap-0 z-50">
             {dialogType === "details" ? (
               <>
-                <DialogHeader>
-                  <DialogTitle>Détails de l'activité</DialogTitle>
+                <DialogHeader className="border-b border-border/40 pb-4 bg-gradient-to-r from-background to-muted/20 px-6 pt-6">
+                  <div className="flex items-center gap-3">
+                    <ActivityIcon type={selectedAct.type} size="md" />
+                    <div>
+                      <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+                        Détails de l'activité
+                      </DialogTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Fiche d'activité CRM
+                      </p>
+                    </div>
+                  </div>
                 </DialogHeader>
-                <div className="py-4 space-y-4">
-                  <div>
-                    <h3 className="font-semibold text-lg">{selectedAct.title}</h3>
-                    <p className="text-sm text-muted-foreground">{selectedAct.client} • par {selectedAct.owner}</p>
+                
+                <div className="p-6 space-y-5 bg-card">
+                  {/* Title & Client Card */}
+                  <div className="p-5 rounded-2xl border border-border/60 bg-gradient-to-br from-background via-card to-muted/10 shadow-sm relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/8 transition-all duration-500" />
+                    <h3 className="font-semibold text-lg text-foreground tracking-tight leading-snug">
+                      {selectedAct.title}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mt-2.5 text-xs text-muted-foreground flex-wrap">
+                      <span className="font-medium text-foreground bg-muted px-2 py-0.5 rounded">
+                        {selectedAct.client}
+                      </span>
+                      <span>•</span>
+                      <span>assigné à</span>
+                      <span className="font-medium text-primary bg-primary/5 px-2 py-0.5 rounded">
+                        {selectedAct.owner}
+                      </span>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 bg-muted/50 p-4 rounded-xl">
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Type</div>
-                      <div className="font-medium mt-1 flex items-center gap-2">
+
+                  {/* Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-3.5">
+                    {/* Type Card */}
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Type</span>
+                      <div className="font-semibold text-sm mt-1.5 flex items-center gap-2 text-foreground">
                         <ActivityIcon type={selectedAct.type} size="sm" />
-                        {Object.entries(typeMap).find(([_, v]) => v === selectedAct.type)?.[0] || selectedAct.type}
+                        <span className="capitalize">
+                          {Object.entries(typeMap).find(([_, v]) => v === selectedAct.type)?.[0] || selectedAct.type}
+                        </span>
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Date & Heure</div>
-                      <div className="font-medium mt-1">{selectedAct.date} à {selectedAct.time}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Statut</div>
-                      <div className="font-medium mt-1"><StatusBadge status={selectedAct.status} /></div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider">Priorité</div>
-                      <div className="font-medium mt-1 capitalize"><PriorityDot priority={selectedAct.priority} /> {selectedAct.priority}</div>
-                    </div>
-                    {selectedAct.reminder && (
-                      <div className="col-span-2 border-t border-border/40 pt-2.5 mt-1 animate-in fade-in duration-200">
-                        <div className="text-xs text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 font-semibold">
-                          <Bell className="h-3.5 w-3.5 text-primary animate-pulse" /> Rappel planifié
+
+                    {/* Date & Heure Card */}
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Date & Heure</span>
+                      <div className="font-semibold text-sm mt-1.5 flex items-center gap-2 text-foreground">
+                        <div className="h-7 w-7 rounded-lg bg-primary/5 text-primary flex items-center justify-center">
+                          <CalendarIcon className="h-3.5 w-3.5" />
                         </div>
-                        <div className="font-medium mt-1 text-sm text-foreground">{selectedAct.reminder}</div>
+                        <span className="truncate">{selectedAct.date} à {selectedAct.time}</span>
                       </div>
-                    )}
+                    </div>
+
+                    {/* Statut Card */}
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Statut</span>
+                      <div className="mt-1.5 flex items-center">
+                        <StatusBadge status={selectedAct.status} />
+                      </div>
+                    </div>
+
+                    {/* Priorité Card */}
+                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Priorité</span>
+                      <div className="font-semibold text-sm mt-1.5 flex items-center gap-2 capitalize text-foreground animate-in fade-in duration-200">
+                        <span className="h-7 w-7 rounded-lg bg-accent flex items-center justify-center">
+                          <PriorityDot priority={selectedAct.priority} />
+                        </span>
+                        <span>
+                          {selectedAct.priority === "high" ? "Haute" : selectedAct.priority === "medium" ? "Moyenne" : "Basse"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  {selectedAct.summary && (
-                    <div>
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Notes</div>
-                      <p className="text-sm bg-muted/30 p-3 rounded-lg border border-border">{selectedAct.summary}</p>
+
+                  {/* Reminder Alert if exists */}
+                  {selectedAct.reminder && (
+                    <div className="p-4 rounded-xl border border-warning/20 bg-warning/[0.03] flex items-start gap-3 animate-in fade-in duration-300">
+                      <span className="h-8 w-8 rounded-lg bg-warning/10 text-warning flex items-center justify-center shrink-0">
+                        <Bell className="h-4 w-4 animate-bounce" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-warning">
+                          Rappel planifié
+                        </div>
+                        <div className="text-xs font-semibold text-foreground mt-0.5 leading-relaxed">
+                          {selectedAct.reminder}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notes Card */}
+                  {selectedAct.summary ? (
+                    <div className="space-y-2">
+                      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                        <FileText className="h-3.5 w-3.5 text-muted-foreground/80" /> Notes & Mémo
+                      </div>
+                      <div className="p-4 rounded-xl border border-border/50 bg-muted/10 text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        {selectedAct.summary}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 border border-dashed border-border/80 rounded-xl text-xs text-muted-foreground">
+                      Aucune note sur cette activité.
                     </div>
                   )}
                 </div>
               </>
             ) : (
               <>
-                <DialogHeader>
+                <DialogHeader className="px-6 pt-6 pb-2">
                   <DialogTitle>Modifier l'activité</DialogTitle>
                 </DialogHeader>
-                <div className="py-4 space-y-4">
+                <div className="px-6 pb-4 space-y-4">
                   <div>
                     <Label>Titre</Label>
                     <Input
@@ -1391,7 +1459,7 @@ export default function ActivitiesPage() {
                     />
                   </div>
                 </div>
-                <DialogFooter>
+                <DialogFooter className="px-6 py-4 bg-muted/20 border-t border-border/40">
                   <Button variant="outline" onClick={() => setDialogType(null)}>Annuler</Button>
                   <Button onClick={handleEditSave} className="gradient-brand text-white border-0">Enregistrer</Button>
                 </DialogFooter>

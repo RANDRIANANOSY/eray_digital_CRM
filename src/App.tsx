@@ -12,6 +12,7 @@ import Pipeline from "./routes/_app.pipeline.tsx";
 import Projects from "./routes/_app.projects.tsx";
 import Users from "./routes/_app.users.tsx";
 import Settings from "./routes/_app.settings.tsx";
+import Reminders from "./routes/_app.reminders.tsx";
 
 const router = createBrowserRouter([
   {
@@ -65,6 +66,10 @@ const router = createBrowserRouter([
           {
             path: "settings",
             element: <Settings />,
+          },
+          {
+            path: "reminders",
+            element: <Reminders />,
           },
         ],
       },

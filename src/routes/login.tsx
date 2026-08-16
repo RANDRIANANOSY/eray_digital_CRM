@@ -1,5 +1,5 @@
-import { useState, FormEvent } from "react";
-import { useNavigate, Link } from "react-router";
+import { useState, FormEvent, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router";
 import { Eye, EyeOff, Lock, Mail, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import logoUrl from "@/assets/eray.jpg";
@@ -7,12 +7,23 @@ import { members } from "@/lib/crm-data";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.expired) {
+      toast.error("Session expirée", {
+        description: "Votre session a expiré, veuillez vous reconnecter.",
+      });
+      // Clear the state to avoid showing it again on refresh
+      navigate(".", { replace: true, state: {} });
+    }
+  }, [location.state, navigate]);
 
   const handleForgotPassword = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -101,10 +112,12 @@ export default function Login() {
         localStorage.setItem("token", token);
         localStorage.setItem("role", role);
         localStorage.setItem("name", displayName);
+        localStorage.setItem("login_time", Date.now().toString());
       } else {
         sessionStorage.setItem("token", token);
         sessionStorage.setItem("role", role);
         sessionStorage.setItem("name", displayName);
+        sessionStorage.setItem("login_time", Date.now().toString());
       }
 
       toast.success("Connexion réussie !", {

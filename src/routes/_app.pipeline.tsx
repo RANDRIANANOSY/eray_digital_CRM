@@ -1,7 +1,7 @@
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useState, useMemo } from "react";
 import { useFilteredCollection } from "@/hooks/use-filtered-collection";
-import { Plus, Filter, LayoutGrid, List as ListIcon, MoreHorizontal, Clock, Calendar as CalendarIcon, Search, X } from "lucide-react";
+import { Plus, Filter, LayoutGrid, List as ListIcon, MoreHorizontal, Clock, Calendar as CalendarIcon, Search, X, AlertCircle } from "lucide-react";
 import { stages, type Stage } from "@/lib/crm-data";
 import { useCRM } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -218,7 +218,15 @@ export default function PipelinePage() {
                               {d.owner.split(" ").map((s) => s[0]).join("")}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-[10px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded">{d.nextAction}</span>
+                          {(!d.nextAction || d.nextAction.trim() === "") ? (
+                            <span className="text-[10px] font-medium text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded flex items-center gap-1">
+                              <AlertCircle className="h-3 w-3 shrink-0" /> Sans action
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded truncate max-w-[120px]" title={`${d.nextAction} ${d.nextActionDate ? '('+d.nextActionDate+')' : ''}`}>
+                              {d.nextAction}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -268,7 +276,17 @@ export default function PipelinePage() {
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted">{d.stage}</span>
                   </td>
                   <td className="px-2 py-3 text-muted-foreground">{d.owner}</td>
-                  <td className="px-2 py-3 text-muted-foreground">{d.nextAction}</td>
+                  <td className="px-2 py-3">
+                    {(!d.nextAction || d.nextAction.trim() === "") ? (
+                      <span className="text-[10px] font-medium text-red-600 bg-red-500/10 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" /> Sans action
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        {d.nextAction} {d.nextActionDate && <span className="text-xs text-primary ml-1">({d.nextActionDate})</span>}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-2 py-3 text-muted-foreground">{d.closeDate}</td>
                 </tr>
               ))}

@@ -103,9 +103,8 @@ describe("Activities Page with Mocked Data", () => {
 
     cy.get('textarea[name="notes"]').type("Notes for the new activity.");
 
-    // Soumission avec force + submit du formulaire
+    // Soumission avec force du formulaire via le bouton Créer
     cy.contains("button", "Créer").click({ force: true });
-    cy.get("form").submit();
 
     // Vérification
     cy.contains("Activité et opportunité créées", { timeout: 10000 }).should(
@@ -145,6 +144,7 @@ describe("Activities Page with Mocked Data", () => {
 
     // Fermeture de la modale en cliquant sur l'overlay
     cy.get('[role="dialog"]').parent().click({ force: true });
+    cy.get('[role="dialog"]').should("not.exist");
 
     // 2. Modify Activity
     cy.contains("Appel de Qualification")

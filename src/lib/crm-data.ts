@@ -20,6 +20,11 @@ export type Client = {
   lastContact: string;
   initials: string;
   color: string;
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy?: string;
+  updatedBy?: string;
+  archived?: boolean;
 };
 
 export const clients = seedData.clients as Client[];
@@ -108,6 +113,7 @@ export type Deal = {
   owner: string;
   lastActivity: string;
   nextAction: string;
+  nextActionDate?: string;
   closeDate: string;
   stage: Stage;
 };
