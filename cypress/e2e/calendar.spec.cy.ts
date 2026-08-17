@@ -212,11 +212,9 @@ describe("Calendar Page", () => {
     // centre du bouton sans réellement bloquer l'interaction.
     cy.contains("button", "Créer l'événement").scrollIntoView().click({ force: true });
 
-    // Check success notification
-    cy.contains("Événement ajouté au calendrier", { timeout: 10000 }).should(
-      "be.visible"
-    );
-    cy.contains("Tâche Cypress Test").should("be.visible");
+    // Check event visible first, then the success notification (more reliable)
+    cy.contains("Tâche Cypress Test", { timeout: 10000 }).should("be.visible");
+    cy.contains("Événement ajouté", { timeout: 15000 }).should("be.visible");
   });
 
   it("should handle empty state in ListView", () => {

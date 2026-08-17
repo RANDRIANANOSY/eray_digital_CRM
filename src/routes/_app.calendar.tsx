@@ -133,7 +133,7 @@ export default function CalendarPage() {
     });
   }, [monday]);
 
-  const daysShort = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  const daysShort = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
   const days = useMemo(() => {
     return daysOfWeek.map((d, i) => {
       const dayNum = d.getDate().toString().padStart(2, "0");
