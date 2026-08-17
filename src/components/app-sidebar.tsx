@@ -13,6 +13,7 @@ import {
   BarChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 import logoUrl from "@/assets/eray.jpg";
@@ -24,7 +25,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ mobileOpen, setMobileOpen }: AppSidebarProps) {
   const { pathname } = useLocation();
-  const role = localStorage.getItem("role") || sessionStorage.getItem("role") || "commercial";
+  const { role } = useAuth();
 
   const getNavForRole = (userRole: string) => {
     const isComm = userRole === "commercial";

@@ -4,6 +4,7 @@ import { useFilteredCollection } from "@/hooks/use-filtered-collection";
 import { Plus, Filter, Calendar as CalendarIcon, Check, Users, Search, X, Trash2 } from "lucide-react";
 import { members, type TaskStatus, type Project, type ProjectTask } from "@/lib/crm-data";
 import { useCRM } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -28,6 +29,13 @@ const taskStatusColors: Record<TaskStatus, string> = {
 export default function ProjectsPage() {
   usePageMeta("Projets — Eray CRM", "Suivi simple des projets clients.");
   const { projects, setProjects } = useCRM();
+  const { user } = useAuth();
+
+  const filteredProjects = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return projects;
+    return projects.filter((p) => p.owner === user.name);
+  }, [projects, user]);
+
   const [taskStatusFilter, setTaskStatusFilter] = useState<TaskStatus[]>([...taskStatuses]);
   const [memberFilter, setMemberFilter] = useState<string[]>([]); // initials
   
@@ -47,7 +55,7 @@ export default function ProjectsPage() {
 
   const searchFields = useMemo(() => ["name" as const, "client" as const], []);
 
-  const filtered = useFilteredCollection(projects, {
+  const filtered = useFilteredCollection(filteredProjects, {
     search: query,
     searchFields,
     filters,
@@ -134,7 +142,7 @@ export default function ProjectsPage() {
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold">Projets clients</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {filtered.length} / {projects.length} projets clients
+            {filtered.length} / {filteredProjects.length} projets clients
           </p>
         </div>
         <div className="flex items-center gap-2">

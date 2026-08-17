@@ -4,6 +4,7 @@ import { useFilteredCollection } from "@/hooks/use-filtered-collection";
 import { Plus, Filter, LayoutGrid, List as ListIcon, MoreHorizontal, Clock, Calendar as CalendarIcon, Search, X, AlertCircle } from "lucide-react";
 import { stages, type Stage } from "@/lib/crm-data";
 import { useCRM } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { NewOpportunityDialog } from "@/components/quick-create-dialogs";
@@ -31,6 +32,12 @@ export default function PipelinePage() {
   usePageMeta("Pipeline commercial — Eray CRM", "Suivez vos opportunités en vue Kanban et Liste.");
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const { deals, setDeals } = useCRM();
+  const { user } = useAuth();
+
+  const filteredDealsByRole = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return deals;
+    return deals.filter((d) => d.owner === user.name);
+  }, [deals, user]);
 
   // Filter states
   const [query, setQuery] = useState("");
@@ -46,7 +53,7 @@ export default function PipelinePage() {
 
   const searchFields = useMemo(() => ["client" as const, "company" as const], []);
 
-  const filteredDeals = useFilteredCollection(deals, {
+  const filteredDeals = useFilteredCollection(filteredDealsByRole, {
     search: query,
     searchFields,
     filters,
@@ -65,7 +72,7 @@ export default function PipelinePage() {
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold">Pipeline commercial</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {filteredDeals.length} / {deals.length} opportunités • {(total / 1000).toFixed(0)} K MGA potentiel • {(won / 1000).toFixed(0)} K MGA signés
+            {filteredDeals.length} / {filteredDealsByRole.length} opportunités • {(total / 1000).toFixed(0)} K MGA potentiel • {(won / 1000).toFixed(0)} K MGA signés
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -100,7 +107,7 @@ export default function PipelinePage() {
           className="h-9 rounded-lg border border-input px-3 text-xs outline-none bg-background text-foreground/80 focus:border-ring"
         >
           <option value="">Tous les responsables</option>
-          {Array.from(new Set(deals.map((d) => d.owner))).map((owner) => (
+          {Array.from(new Set(filteredDealsByRole.map((d) => d.owner))).map((owner) => (
             <option key={owner} value={owner}>
               {owner}
             </option>

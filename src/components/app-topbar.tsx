@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { Search, Bell, Plus, ChevronDown, Command, Menu, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth";
 import logoUrl from "@/assets/eray.jpg";
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ type QuickAction = "client" | "activity" | "event" | "opportunity" | "project" |
 export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user, refreshUser } = useAuth();
   const search = Route.useSearch() || {};
   const query = search.q || "";
   const [searchTerm, setSearchTerm] = useState(query);
@@ -62,24 +64,18 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
   const handleLogout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
+    localStorage.removeItem("name");
+    localStorage.removeItem("login_time");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("role");
+    sessionStorage.removeItem("name");
+    sessionStorage.removeItem("login_time");
+    refreshUser();
     navigate("/login");
-  }, [navigate]);
+  }, [navigate, refreshUser]);
 
-  const [userName, setUserName] = useState("Léa Martin");
-  const [userRole, setUserRole] = useState("Manager Ventes");
-
-  useEffect(() => {
-    const name = localStorage.getItem("name") || sessionStorage.getItem("name");
-    const role = localStorage.getItem("role") || sessionStorage.getItem("role");
-    if (name) setUserName(name);
-    if (role) {
-      if (role === "admin") setUserRole("Administrateur");
-      else if (role === "manager") setUserRole("Manager");
-      else setUserRole("Commercial");
-    }
-  }, []);
+  const userName = user?.name || "Utilisateur";
+  const userRole = user?.role === "admin" ? "Administrateur" : user?.role === "manager" ? "Manager" : "Commercial";
 
   const [action, setAction] = useState<QuickAction>(null);
   const [theme, setTheme] = useState(() => {

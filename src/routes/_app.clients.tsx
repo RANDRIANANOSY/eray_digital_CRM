@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { projectsForCompany, clientHistorySummary } from "@/lib/crm-data";
 import { useCRM } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PriorityDot, ActivityIcon } from "@/components/crm-atoms";
@@ -70,6 +71,13 @@ const TABLE_ROW_HEIGHT = 76;
 export default function ClientsPage() {
   usePageMeta("Clients — Eray CRM", "Gérez vos clients et prospects avec filtres avancés.");
   const { clients: clientList, setClients: setClientList } = useCRM();
+  const { user } = useAuth();
+
+  const filteredClientList = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return clientList;
+    return clientList.filter((c) => c.owner === user.name);
+  }, [clientList, user]);
+
   const [view, setView] = useState<"table" | "cards">("table");
   const [query, setQuery] = useState("");
   const [selectedClient, setSelectedClient] = useState<any>(null);
@@ -88,9 +96,9 @@ export default function ClientsPage() {
   const ITEMS_PER_PAGE = 8;
 
   // Options de filtres
-  const ownerOptions = useMemo(() => Array.from(new Set(clientList.map((c) => c.owner))), [clientList]);
-  const sectorOptions = useMemo(() => Array.from(new Set(clientList.map((c) => c.sector))), [clientList]);
-  const tagOptions = useMemo(() => Array.from(new Set(clientList.flatMap((c) => c.tags || []))), [clientList]);
+  const ownerOptions = useMemo(() => Array.from(new Set(filteredClientList.map((c) => c.owner))), [filteredClientList]);
+  const sectorOptions = useMemo(() => Array.from(new Set(filteredClientList.map((c) => c.sector))), [filteredClientList]);
+  const tagOptions = useMemo(() => Array.from(new Set(filteredClientList.flatMap((c) => c.tags || []))), [filteredClientList]);
 
   const filters = useMemo(() => [
     (c: any) => showArchived ? c.archived === true : !c.archived,
@@ -103,7 +111,7 @@ export default function ClientsPage() {
 
   const searchFields = useMemo(() => ["name" as const, "company" as const], []);
 
-  const filtered = useFilteredCollection(clientList, {
+  const filtered = useFilteredCollection(filteredClientList, {
     search: query,
     searchFields,
     filters,
@@ -194,7 +202,7 @@ export default function ClientsPage() {
       "Responsable",
       "Valeur",
     ];
-    const rows = clientList.map((c) => [
+    const rows = filteredClientList.map((c) => [
       c.name,
       c.company,
       c.role,
@@ -241,7 +249,7 @@ export default function ClientsPage() {
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold">Clients</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {clientList.length} contacts • 4 nouveaux cette semaine
+            {filteredClientList.length} contacts • 4 nouveaux cette semaine
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -1,5 +1,6 @@
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useMemo, useState } from "react";
+import { useAuth } from "@/lib/auth";
 import { ChevronLeft, ChevronRight, Plus, Filter, Check, CalendarDays, User2, Clock3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityIcon } from "@/components/crm-atoms";
@@ -117,6 +118,12 @@ export default function CalendarPage() {
   const [dateFilter, setDateFilter] = useState<string>(""); // yyyy-mm-dd or ""
 
   const { activities: activityList } = useCRM();
+  const { user } = useAuth();
+
+  const filteredActivityList = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return activityList;
+    return activityList.filter((a) => a.owner === user.name);
+  }, [activityList, user]);
 
   const monday = useMemo(() => {
     if (dateFilter) {
@@ -210,7 +217,7 @@ export default function CalendarPage() {
   };
 
   const visibleEvents = useMemo(() => {
-    const mapped = activityList.map(mapActivityToEvent);
+    const mapped = filteredActivityList.map(mapActivityToEvent);
     const startMs = monday.getTime() - 12 * 3600 * 1000;
     const endMs = monday.getTime() + 7 * 86400000 - 12 * 3600 * 1000;
 
@@ -460,7 +467,7 @@ export default function CalendarPage() {
             </div>
           </div>
         ) : (
-          <MonthView activities={activityList} />
+          <MonthView activities={filteredActivityList} />
         )}
       </div>
     </div>

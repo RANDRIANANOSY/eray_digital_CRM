@@ -4,10 +4,12 @@ import { Eye, EyeOff, Lock, Mail, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import logoUrl from "@/assets/eray.jpg";
 import { members } from "@/lib/crm-data";
+import { useAuth } from "@/lib/auth";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { refreshUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -29,15 +31,6 @@ export default function Login() {
     e.preventDefault();
     toast.info("🔐 Fonctionnalité à venir : réinitialisation par email.", {
       description: "Le système de récupération de mot de passe est en cours de développement.",
-    });
-  };
-
-  const handleQuickLogin = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword("password123");
-    toast.success("Champs pré-remplis !", {
-      description: `Identifiants pour ${demoEmail} ajoutés. Cliquez sur Se connecter.`,
-      duration: 2000,
     });
   };
 
@@ -124,6 +117,7 @@ export default function Login() {
         description: `Bienvenue, ${displayName} !`,
       });
 
+      refreshUser();
       navigate("/");
     } catch (err: any) {
       setError(err.message || "Une erreur est survenue. Veuillez réessayer.");
@@ -256,31 +250,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          {/* Quick login credentials picker for developer reference */}
-          <div className="mt-8 pt-6 border-t border-border/50 dark:border-border/10 text-left">
-            <h2 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
-              Comptes de test (Sélection rapide)
-            </h2>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("admin@eray.com")}
-                className="p-2.5 border border-border/50 dark:border-border/10 rounded-xl hover:bg-muted/50 text-left transition-all text-xs"
-              >
-                <div className="font-semibold text-foreground truncate">AE (Admin)</div>
-                <div className="text-[10px] text-muted-foreground truncate">admin@eray.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("yanis@eray.com")}
-                className="p-2.5 border border-border/50 dark:border-border/10 rounded-xl hover:bg-muted/50 text-left transition-all text-xs"
-              >
-                <div className="font-semibold text-foreground truncate">YM (Commercial)</div>
-                <div className="text-[10px] text-muted-foreground truncate">yanis@eray.com</div>
-              </button>
-            </div>
-          </div>
 
           <p className="mt-8 text-sm text-muted-foreground">
             Pas encore de compte ?{" "}

@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router";
 import {
   TrendingUp,
@@ -7,6 +8,7 @@ import {
 } from "lucide-react";
 import { kpis as initialKpis, revenueSeries } from "@/lib/crm-data";
 import { useCRM } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { ActivityIcon, StatusBadge, PriorityDot } from "@/components/crm-atoms";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -24,18 +26,35 @@ export default function Dashboard() {
     "Pilotez vos ventes, activités et opportunités en un coup d'œil."
   );
   const { clients, deals, activities } = useCRM();
-  const userName = localStorage.getItem("name") || sessionStorage.getItem("name") || "Léa";
+  const { user } = useAuth();
+
+  const filteredClients = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return clients;
+    return clients.filter((c) => c.owner === user.name);
+  }, [clients, user]);
+
+  const filteredDeals = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return deals;
+    return deals.filter((d) => d.owner === user.name);
+  }, [deals, user]);
+
+  const filteredActivities = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return activities;
+    return activities.filter((a) => a.owner === user.name);
+  }, [activities, user]);
+
+  const userName = user?.name || "Utilisateur";
 
   // Calculate dynamic KPIs
-  const totalPotential = deals.reduce((acc, d) => acc + d.amount, 0);
-  const totalWon = deals.filter(d => ["Contrat signé", "Vente gagnée", "Ambassadeur"].includes(d.stage)).reduce((acc, d) => acc + d.amount, 0);
-  const winRate = deals.length > 0 ? Math.round((deals.filter(d => ["Contrat signé", "Vente gagnée", "Ambassadeur"].includes(d.stage)).length / deals.length) * 100) : 0;
+  const totalPotential = filteredDeals.reduce((acc, d) => acc + d.amount, 0);
+  const totalWon = filteredDeals.filter(d => ["Contrat signé", "Vente gagnée", "Ambassadeur"].includes(d.stage)).reduce((acc, d) => acc + d.amount, 0);
+  const winRate = filteredDeals.length > 0 ? Math.round((filteredDeals.filter(d => ["Contrat signé", "Vente gagnée", "Ambassadeur"].includes(d.stage)).length / filteredDeals.length) * 100) : 0;
   
   const kpis = [
-    { label: "Prospects", value: clients.filter(c => c.status === "prospect").length.toString(), delta: "+12%", tone: "brand" as const },
-    { label: "Clients actifs", value: clients.filter(c => c.status === "actif" || c.status === "vip").length.toString(), delta: "+4%", tone: "success" as const },
-    { label: "Opportunités gagnées", value: deals.filter(d => ["Contrat signé", "Vente gagnée", "Ambassadeur"].includes(d.stage)).length.toString(), delta: "+8%", tone: "violet" as const },
-    { label: "Opportunités perdues", value: deals.filter(d => d.stage === "Vente perdue").length.toString(), delta: "-2%", tone: "destructive" as const },
+    { label: "Prospects", value: filteredClients.filter(c => c.status === "prospect").length.toString(), delta: "+12%", tone: "brand" as const },
+    { label: "Clients actifs", value: filteredClients.filter(c => c.status === "actif" || c.status === "vip").length.toString(), delta: "+4%", tone: "success" as const },
+    { label: "Opportunités gagnées", value: filteredDeals.filter(d => ["Contrat signé", "Vente gagnée", "Ambassadeur"].includes(d.stage)).length.toString(), delta: "+8%", tone: "violet" as const },
+    { label: "Opportunités perdues", value: filteredDeals.filter(d => d.stage === "Vente perdue").length.toString(), delta: "-2%", tone: "destructive" as const },
     { label: "CA potentiel", value: `${(totalPotential / 1000).toFixed(0)} K MGA`, delta: "+18%", tone: "brand" as const },
     { label: "CA signé", value: `${(totalWon / 1000).toFixed(0)} K MGA`, delta: "+22%", tone: "success" as const },
     { label: "Taux de conversion", value: `${winRate}%`, delta: "+3 pts", tone: "violet" as const },
@@ -126,7 +145,7 @@ export default function Dashboard() {
         <div className="card-elegant p-6">
           <SectionHeader title="Tâches du jour" count={5} link="/activities" />
           <ul className="mt-4 space-y-2.5">
-            {activities.slice(0, 5).map((a) => (
+            {filteredActivities.slice(0, 5).map((a) => (
               <li key={a.id} className="flex items-center gap-3 group">
                 <input type="checkbox" className="h-4 w-4 rounded border-border accent-primary" />
                 <ActivityIcon type={a.type} size="sm" />
@@ -166,7 +185,7 @@ export default function Dashboard() {
         <div className="card-elegant p-6">
           <SectionHeader title="Activités en retard" count={2} link="/activities" tone="destructive" />
           <ul className="mt-4 space-y-3">
-            {activities.filter((a) => a.status === "en retard").concat(activities.filter(a => a.priority === "high").slice(0,1)).slice(0, 3).map((a) => (
+            {filteredActivities.filter((a) => a.status === "en retard").concat(filteredActivities.filter(a => a.priority === "high").slice(0,1)).slice(0, 3).map((a) => (
               <li key={a.id} className="flex items-start gap-3 p-3 rounded-lg bg-rose-50/60 border border-rose-100">
                 <AlertCircle className="h-4 w-4 text-rose-500 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -185,7 +204,7 @@ export default function Dashboard() {
         <div className="card-elegant p-6 lg:col-span-3">
           <SectionHeader title="Activités récentes" link="/activities" />
           <ul className="mt-4 divide-y divide-border">
-            {activities.slice(0, 5).map((a) => (
+            {filteredActivities.slice(0, 5).map((a) => (
               <li key={a.id} className="py-3 flex items-center gap-3">
                 <ActivityIcon type={a.type} />
                 <div className="flex-1 min-w-0">
@@ -202,7 +221,7 @@ export default function Dashboard() {
         <div className="card-elegant p-6 lg:col-span-2">
           <SectionHeader title="Top opportunités" link="/pipeline" />
           <ul className="mt-4 space-y-3">
-            {deals.filter(d => d.stage !== "Vente gagnée" && d.stage !== "Vente perdue" && d.stage !== "Ambassadeur").slice(0, 4).map((d) => (
+            {filteredDeals.filter(d => d.stage !== "Vente gagnée" && d.stage !== "Vente perdue" && d.stage !== "Ambassadeur").slice(0, 4).map((d) => (
               <li key={d.id} className="p-3 rounded-lg border border-border hover:border-primary/30 hover:shadow-elegant transition-all">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

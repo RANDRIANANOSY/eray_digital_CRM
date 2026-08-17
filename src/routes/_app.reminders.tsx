@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useCRM } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 import { Bell, CheckCircle2, Clock, Phone, Mail, Calendar as CalendarIcon, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -8,9 +10,20 @@ export default function RemindersPage() {
   usePageMeta("Rappels — Eray CRM", "Vos relances et tâches urgentes à effectuer.");
   
   const { activities, setActivities, deals, setDeals } = useCRM();
+  const { user } = useAuth();
 
-  const pendingActivities = activities.filter(a => a.status === "planifié" || a.status === "à faire" || a.status === "en retard");
-  const pendingDeals = deals.filter(d => d.nextAction && d.stage !== "Vente gagnée" && d.stage !== "Vente perdue" && d.stage !== "Contrat signé");
+  const filteredActivities = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return activities;
+    return activities.filter((a) => a.owner === user.name);
+  }, [activities, user]);
+
+  const filteredDeals = useMemo(() => {
+    if (!user || user.role === "admin" || user.role === "manager") return deals;
+    return deals.filter((d) => d.owner === user.name);
+  }, [deals, user]);
+
+  const pendingActivities = filteredActivities.filter(a => a.status === "planifié" || a.status === "à faire" || a.status === "en retard");
+  const pendingDeals = filteredDeals.filter(d => d.nextAction && d.stage !== "Vente gagnée" && d.stage !== "Vente perdue" && d.stage !== "Contrat signé");
 
   const markActivityDone = (id: string) => {
     setActivities(activities.map(a => a.id === id ? { ...a, status: "terminé" } : a));

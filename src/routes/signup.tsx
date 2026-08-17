@@ -14,7 +14,6 @@ export default function Signup() {
   const [lastName, setLastName] = useState("");
   const [company, setCompany] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -60,7 +59,7 @@ export default function Signup() {
     const trimmedConfirmPassword = confirmPassword;
 
     // Front-end validations
-    if (!trimmedFirstName || !trimmedLastName || !trimmedEmail || !role || !trimmedPassword || !trimmedConfirmPassword) {
+    if (!trimmedFirstName || !trimmedLastName || !trimmedEmail || !trimmedPassword || !trimmedConfirmPassword) {
       setError("Veuillez remplir tous les champs obligatoires.");
       return;
     }
@@ -98,16 +97,10 @@ export default function Signup() {
       // Simulate a network response
       await new Promise((resolve) => setTimeout(resolve, 1200));
 
-      // Map French display role
-      let frenchRole: Member["role"] = "Commercial";
-      if (role === "admin") frenchRole = "Administrateur";
-      else if (role === "manager") frenchRole = "Manager";
-
-      // Register new user dynamically into the store context
       const newMember: Member = {
         id: `u-${Date.now()}`,
         name: `${trimmedFirstName} ${trimmedLastName}`,
-        role: frenchRole,
+        role: "Commercial",
         email: trimmedEmail,
         phone: "+33 6 00 00 00 00",
         team: trimmedCompany || "Non assigné",
@@ -253,30 +246,6 @@ export default function Signup() {
                   className="w-full pl-11 pr-4 py-3 border border-border/60 dark:border-border/10 rounded-xl text-[15px] bg-muted/20 focus:bg-card focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-foreground"
                 />
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label htmlFor="role" className="block font-medium text-xs text-foreground/80 pl-1">
-                Rôle
-              </label>
-              <select
-                id="role"
-                required
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full px-4 py-3 border border-border/60 dark:border-border/10 rounded-xl text-[15px] bg-muted/20 focus:bg-card focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-foreground cursor-pointer appearance-none"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 1rem center",
-                  backgroundSize: "1rem"
-                }}
-              >
-                <option value="" disabled>Sélectionnez votre rôle</option>
-                <option value="commercial">Commercial</option>
-                <option value="manager">Manager</option>
-                <option value="admin">Administrateur</option>
-              </select>
             </div>
 
             <div className="space-y-1.5">

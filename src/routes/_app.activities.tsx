@@ -1,5 +1,6 @@
 import { usePageMeta } from "@/hooks/use-page-meta";
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { Navigate } from "react-router";
 import { useFilteredCollection } from "@/hooks/use-filtered-collection";
 import { useVirtualizer } from "@/hooks/use-virtualizer";
 import {
@@ -9,6 +10,7 @@ import {
   Shield, User, Briefcase, Bell, Mail, MessageSquare, Laptop
 } from "lucide-react";
 import { useCRM } from "@/lib/store";
+import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ActivityIcon, StatusBadge, PriorityDot } from "@/components/crm-atoms";
@@ -159,6 +161,14 @@ export default function ActivitiesPage() {
 
   const parentRef = useRef<HTMLDivElement>(null);
   const { activities: activityList, setActivities: setActivityList } = useCRM();
+  const { user, canEditActivity } = useAuth();
+
+  if (!user) return <Navigate to="/login" replace />;
+
+  const filteredActivityList = useMemo(() => {
+    if (user.role === "admin" || user.role === "manager") return activityList;
+    return activityList.filter((a) => a.owner === user.name);
+  }, [activityList, user]);
 
   const [dateFilter, setDateFilter] = useState<DateFilter>("Toutes dates");
   const [customDate, setCustomDate] = useState<string>("");
@@ -171,10 +181,6 @@ export default function ActivitiesPage() {
   const [selectedPriority, setSelectedPriority] = useState<string>("");
   const [selectedOwner, setSelectedOwner] = useState<string>("");
   const [activeSmartFilter, setActiveSmartFilter] = useState<"none" | "overdue" | "blocked" | "soon">("none");
-  const [currentUser, setCurrentUser] = useState<{ name: string; role: "manager" | "commercial" }>({
-    name: "Antoine Roy",
-    role: "commercial",
-  });
   const [tick, setTick] = useState(0);
   const [visibleStage, setVisibleStage] = useState<"today_tomorrow" | "this_week" | "all">("today_tomorrow");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -330,10 +336,6 @@ export default function ActivitiesPage() {
     return () => clearInterval(interval);
   }, [setActivityList, syncActivities]);
 
-  const canEditActivity = (activity: any) => {
-    return currentUser.role === "manager" || activity.owner === currentUser.name;
-  };
-
   const getCountdownInfo = (dateStr: string, timeStr: string, status: string) => {
     if (status === "terminé") return null;
 
@@ -400,7 +402,7 @@ export default function ActivitiesPage() {
 
   const searchFields = useMemo(() => ["title" as const, "client" as const, "owner" as const, "summary" as const], []);
 
-  const filtered = useFilteredCollection(activityList, {
+  const filtered = useFilteredCollection(filteredActivityList, {
     search: debouncedSearchQuery,
     searchFields,
     filters,
@@ -657,7 +659,7 @@ export default function ActivitiesPage() {
       type: actionTypeMap[workflowActionType] || "task",
       title: workflowTitle,
       client: workflowParent.client,
-      owner: currentUser.name,
+      owner: user.name,
       date: workflowDate,
       time: workflowTime,
       status: "à faire",
@@ -695,21 +697,8 @@ export default function ActivitiesPage() {
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2 bg-card border border-border px-3 py-1.5 rounded-lg shadow-sm">
-            <UserIconRole user={currentUser} />
-            <select
-              value={currentUser.name}
-              onChange={(e) => {
-                const name = e.target.value;
-                const role = name === "Léa Martin" ? "manager" : "commercial";
-                setCurrentUser({ name, role });
-                toast.success(`Utilisateur actif modifié : ${name} (${role})`);
-              }}
-              className="text-xs font-semibold bg-transparent border-0 outline-none text-foreground cursor-pointer focus:ring-0"
-            >
-              <option value="Antoine Roy">Antoine Roy (Commercial)</option>
-              <option value="Léa Martin">Léa Martin (Manager)</option>
-              <option value="Chloé Bernard">Chloé Bernard (Commercial)</option>
-            </select>
+            <UserIconRole user={user} />
+            <div className="text-sm font-medium">{user.name}</div>
           </div>
           <NewActivityDialog />
         </div>
@@ -787,7 +776,7 @@ export default function ActivitiesPage() {
                   className="w-full h-8 rounded-md border border-input px-2 text-xs outline-none bg-background text-foreground/80 focus:border-ring"
                 >
                   <option value="">Tous les responsables</option>
-                  {Array.from(new Set(activityList.map(a => a.owner))).map(owner => (
+                  {Array.from(new Set(filteredActivityList.map(a => a.owner))).map(owner => (
                     <option key={owner} value={owner}>{owner}</option>
                   ))}
                 </select>
@@ -1598,7 +1587,7 @@ export default function ActivitiesPage() {
                     <div>
                       <Label className="text-xs font-semibold text-foreground/80">Responsable</Label>
                       <Input
-                        value={currentUser.name}
+                        value={user.name}
                         disabled
                         className="mt-1.5 bg-muted/50 cursor-not-allowed"
                       />
@@ -1649,8 +1638,8 @@ export default function ActivitiesPage() {
 }
 
 // Helper components
-function UserIconRole({ user }: { user: { name: string; role: "manager" | "commercial" } }) {
-  if (user.role === "manager") {
+function UserIconRole({ user }: { user: { name: string; role: string } }) {
+  if (user.role === "manager" || user.role === "admin") {
     return <Shield className="h-4 w-4 text-violet-600 shrink-0" />;
   }
   return <AvatarFallbackIcon className="h-4 w-4 text-emerald-600 shrink-0" />;
