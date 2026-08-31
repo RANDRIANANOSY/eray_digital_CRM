@@ -1,16 +1,13 @@
 import { Outlet, Navigate } from "react-router";
 import { useState } from "react";
-import { useAuth } from "@/lib/auth";
-import { RoleGuard } from "@/components/role-guard";
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppTopbar } from "@/components/app-topbar";
-import { Toaster } from "@/components/ui/sonner";
+import { isAuthenticated } from "@/lib/api/auth-storage";
 
 export default function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const { user } = useAuth();
 
-  if (!user) {
+  if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
 
@@ -23,23 +20,6 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
-      <Toaster />
     </div>
-  );
-}
-
-export function UsersGuard() {
-  return (
-    <RoleGuard roles={["admin", "manager"]}>
-      <Outlet />
-    </RoleGuard>
-  );
-}
-
-export function SettingsGuard() {
-  return (
-    <RoleGuard roles={["admin"]}>
-      <Outlet />
-    </RoleGuard>
   );
 }

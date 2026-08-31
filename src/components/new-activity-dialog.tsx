@@ -8,10 +8,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { ReactNode } from "react";
+import type { ReactNode, FormEvent } from "react";
 import { useState } from "react";
-import { useCRM } from "@/lib/store";
-import type { Stage, Activity } from "@/lib/crm-data";
+import { ClientSelect } from "@/components/entity-selects";
+import { useClients } from "@/hooks/api/useClients";
+import { useCreateActivity } from "@/hooks/api/useActivities";
+import type { ActivityDto, ActivityType } from "@/lib/api/types";
+import { computeReminderAt } from "@/lib/reminder";
+import { ApiError } from "@/lib/api";
 
 const REMINDER_PRESETS = [
   { value: "Aucun", label: "Aucun" },
@@ -30,86 +34,66 @@ const REMINDER_PRESETS = [
 
 type Props = {
   trigger?: ReactNode;
-  defaultClient?: string;
+  defaultClientId?: number;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  onAdd?: (activity: any) => void;
+  onAdd?: (activity: ActivityDto) => void;
 };
 
-export function NewActivityDialog({ trigger, defaultClient, open, onOpenChange, onAdd }: Props) {
+export function NewActivityDialog({ trigger, defaultClientId, open, onOpenChange, onAdd }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const [internalOpen, setInternalOpen] = useState(false);
   const [type, setType] = useState("Appel");
-  const { activities, setActivities, deals, setDeals } = useCRM();
+  const createActivity = useCreateActivity();
+  useClients({ perPage: 1 }); // warms the client list cache used by ClientSelect
 
   const [reminderPreset, setReminderPreset] = useState("Aucun");
   const [customVal, setCustomVal] = useState("15");
   const [customUnit, setCustomUnit] = useState("minutes");
   const [customChannels, setCustomChannels] = useState<string[]>(["notification"]);
-  
+
   const isOpen = open ?? internalOpen;
   const setOpen = (o: boolean) => {
     setInternalOpen(o);
     onOpenChange?.(o);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const typeMapping: Record<string, Activity["type"]> = {
-      "Appel": "call",
-      "RDV": "meeting",
-      "Email": "email",
-      "Note": "note",
-      "Tâche": "task"
+    const typeMapping: Record<string, ActivityType> = {
+      Appel: "call",
+      RDV: "meeting",
+      Email: "email",
+      Note: "note",
+      Tâche: "task",
     };
 
-    let reminderText = reminderPreset;
-    if (reminderPreset === "custom") {
-      const channelLabels = customChannels.map(c => {
-        if (c === "notification") return "Notification UI";
-        if (c === "email") return "Email";
-        if (c === "sms") return "SMS";
-        return c;
-      }).join(" & ");
-      
-      const unitLabel = customUnit === "minutes" ? "min" : customUnit === "heures" ? "h" : customUnit === "jours" ? "j" : "sem.";
-      reminderText = `${customVal} ${unitLabel} avant (${channelLabels})`;
+    const titleText = fd.get("title")?.toString().trim() || "";
+    const eventDate = fd.get("date")?.toString() || today;
+    const eventTime = fd.get("time")?.toString() || "09:00";
+    const scheduledAt = new Date(`${eventDate}T${eventTime}`);
+    const clientId = Number(fd.get("clientId"));
+
+    try {
+      const activity = await createActivity.mutateAsync({
+        type: typeMapping[type] || "call",
+        title: titleText,
+        clientId,
+        scheduledAt: scheduledAt.toISOString(),
+        status: "à faire",
+        priority: "medium",
+        summary: fd.get("notes")?.toString() || null,
+        reminderAt: computeReminderAt(scheduledAt, reminderPreset, customVal, customUnit),
+      });
+
+      onAdd?.(activity);
+      setOpen(false);
+      toast.success("Activité créée", { description: "L'activité a été ajoutée." });
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Une erreur est survenue.";
+      toast.error("Impossible de créer l'activité", { description: message });
     }
-
-    const newAct: Activity = {
-      id: `act_${Date.now()}`,
-      type: typeMapping[type] || "call",
-      title: fd.get("title")?.toString() || "Nouvelle activité",
-      client: fd.get("client")?.toString() || "Client inconnu",
-      owner: fd.get("owner")?.toString() || "Léa Martin",
-      date: fd.get("date")?.toString() || today,
-      time: fd.get("time")?.toString() || "09:00",
-      status: "à faire",
-      priority: "medium",
-      summary: fd.get("notes")?.toString() || "",
-      reminder: reminderText !== "Aucun" ? reminderText : undefined,
-    };
-
-    setActivities([newAct, ...activities]);
-    onAdd?.(newAct);
-
-    const newDeal = {
-      id: `deal_${Date.now()}`,
-      client: newAct.client,
-      company: "À définir",
-      amount: 0,
-      probability: 10,
-      owner: newAct.owner,
-      lastActivity: newAct.type,
-      nextAction: "Prise de contact",
-      closeDate: "À définir",
-      stage: "Nouveau lead" as Stage,
-    };
-    setDeals([newDeal, ...deals]);
-
-    setOpen(false);
-    toast.success("Activité et opportunité créées", { description: "L'activité a été ajoutée et envoyée vers le pipeline." });
   };
 
   return (
@@ -125,10 +109,7 @@ export function NewActivityDialog({ trigger, defaultClient, open, onOpenChange, 
         <DialogHeader>
           <DialogTitle>Créer une activité</DialogTitle>
         </DialogHeader>
-        <form
-          className="space-y-4 mt-2"
-          onSubmit={handleSubmit}
-        >
+        <form className="space-y-4 mt-2" onSubmit={handleSubmit}>
           <div>
             <label className="text-xs font-semibold uppercase text-muted-foreground">Type</label>
             <div className="mt-1.5 grid grid-cols-5 gap-1.5">
@@ -138,7 +119,9 @@ export function NewActivityDialog({ trigger, defaultClient, open, onOpenChange, 
                   key={t}
                   onClick={() => setType(t)}
                   className={`h-9 rounded-lg border text-xs font-medium transition ${
-                    type === t ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary hover:bg-primary/5"
+                    type === t
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-primary hover:bg-primary/5"
                   }`}
                 >
                   {t}
@@ -156,23 +139,13 @@ export function NewActivityDialog({ trigger, defaultClient, open, onOpenChange, 
             />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold uppercase text-muted-foreground">Client</label>
-              <input
-                name="client"
-                required
-                className="mt-1.5 w-full h-10 rounded-lg border border-input px-3 text-sm outline-none focus:border-ring"
-                placeholder="Rechercher…"
-                defaultValue={defaultClient}
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold uppercase text-muted-foreground">Responsable</label>
-              <input
-                name="owner"
-                className="mt-1.5 w-full h-10 rounded-lg border border-input px-3 text-sm outline-none focus:border-ring"
-                defaultValue="Léa Martin"
-              />
+            <div className="col-span-2">
+              <label className="text-xs font-semibold uppercase text-muted-foreground">
+                Client
+              </label>
+              <div className="mt-1.5">
+                <ClientSelect name="clientId" defaultValue={defaultClientId} />
+              </div>
             </div>
             <div>
               <label className="text-xs font-semibold uppercase text-muted-foreground">Date</label>
@@ -188,6 +161,7 @@ export function NewActivityDialog({ trigger, defaultClient, open, onOpenChange, 
               <input
                 name="time"
                 type="time"
+                defaultValue="09:00"
                 className="mt-1.5 w-full h-10 rounded-lg border border-input px-3 text-sm outline-none focus:border-ring"
               />
             </div>
@@ -212,7 +186,9 @@ export function NewActivityDialog({ trigger, defaultClient, open, onOpenChange, 
               <div className="mt-3 p-3 bg-muted/30 rounded-lg border border-border space-y-3 animate-in fade-in slide-in-from-top-1 duration-200">
                 <div className="flex gap-2 items-center">
                   <div className="flex-1">
-                    <label className="text-[10px] font-semibold uppercase text-muted-foreground">Valeur</label>
+                    <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                      Valeur
+                    </label>
                     <input
                       type="number"
                       min="1"
@@ -222,7 +198,9 @@ export function NewActivityDialog({ trigger, defaultClient, open, onOpenChange, 
                     />
                   </div>
                   <div className="flex-[2]">
-                    <label className="text-[10px] font-semibold uppercase text-muted-foreground">Unité</label>
+                    <label className="text-[10px] font-semibold uppercase text-muted-foreground">
+                      Unité
+                    </label>
                     <select
                       value={customUnit}
                       onChange={(e) => setCustomUnit(e.target.value)}
@@ -284,8 +262,16 @@ export function NewActivityDialog({ trigger, defaultClient, open, onOpenChange, 
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-            <Button type="submit" className="gradient-brand text-white border-0">Créer</Button>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              className="gradient-brand text-white border-0"
+              disabled={createActivity.isPending}
+            >
+              {createActivity.isPending ? "Création…" : "Créer"}
+            </Button>
           </div>
         </form>
       </DialogContent>

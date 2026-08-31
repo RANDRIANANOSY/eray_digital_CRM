@@ -2,7 +2,7 @@ import { defineConfig } from "cypress";
 import codeCoverageTask from "@cypress/code-coverage/task";
 
 export default defineConfig({
-  projectId: 'uuknsk',
+  projectId: "uuknsk",
   e2e: {
     baseUrl: "http://localhost:5173",
 

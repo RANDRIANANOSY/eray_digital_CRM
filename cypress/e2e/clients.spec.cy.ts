@@ -4,7 +4,7 @@ describe("Clients Page", () => {
   const mockCRMData = {
     clients: [
       {
-        id: "client-1",
+        id: 1,
         name: "Mock Prospect One",
         company: "Alpha Tech",
         role: "CTO",
@@ -22,7 +22,7 @@ describe("Clients Page", () => {
         color: "indigo",
       },
       {
-        id: "client-2",
+        id: 2,
         name: "Mock Client Two",
         company: "Beta Services",
         role: "CEO",
@@ -48,6 +48,7 @@ describe("Clients Page", () => {
   };
 
   beforeEach(() => {
+    cy.mockAllApi(mockCRMData);
     cy.visitWithSeed("/clients", mockCRMData);
   });
 
@@ -85,29 +86,31 @@ describe("Clients Page", () => {
     // statut déjà présent dans le tableau (derrière l'overlay du dropdown,
     // donc avec pointer-events: none hérité du body), plutôt que l'item du
     // menu lui-même (qui a pointer-events: auto forcé par Radix).
-    const DROPDOWN_CONTENT =
-      '[role="menu"], [role="listbox"], [data-radix-popper-content-wrapper]';
+    const DROPDOWN_CONTENT = '[role="menu"], [role="listbox"], [data-radix-popper-content-wrapper]';
 
     // 1. Filter by Statut: Actif
     cy.contains("button", "Statut").click();
-    cy.get(DROPDOWN_CONTENT).last().should("be.visible").within(() => {
-      cy.contains("actif").click();
-    });
+    cy.get(DROPDOWN_CONTENT)
+      .last()
+      .should("be.visible")
+      .within(() => {
+        cy.contains("actif").click();
+      });
     cy.contains("Mock Client Two").should("be.visible");
     cy.contains("Mock Prospect One").should("not.exist");
 
     // 2. Filter by Responsable: Léa Martin
-    cy.contains("button", "Responsable").click();
-    cy.get(DROPDOWN_CONTENT).last().should("be.visible").within(() => {
-      cy.contains("Léa Martin").click();
-    });
+    cy.get("select").last().select("3");
     cy.contains("Mock Client Two").should("be.visible");
 
     // 3. Filter by Priorité: Moyenne (medium)
     cy.contains("button", "Priorité").click();
-    cy.get(DROPDOWN_CONTENT).last().should("be.visible").within(() => {
-      cy.contains(/^medium$/i).click();
-    });
+    cy.get(DROPDOWN_CONTENT)
+      .last()
+      .should("be.visible")
+      .within(() => {
+        cy.contains(/^medium$/i).click();
+      });
     cy.contains("Mock Client Two").should("be.visible");
 
     // 4. Reset Filters
@@ -141,7 +144,6 @@ describe("Clients Page", () => {
     cy.get('select[name="status"]').select("vip");
     cy.get('select[name="priority"]').select("high");
     cy.get('input[name="value"]').clear().type("500000");
-    cy.get('input[name="owner"]').clear().type("Léa Martin");
     cy.get('input[name="address"]').type("Paris, France");
 
     // Submit
@@ -153,55 +155,29 @@ describe("Clients Page", () => {
   });
 
   it("should view details, edit, and delete client using action dropdown", () => {
-    // Le nom de classe de l'icône "..." peut varier selon la version de
-    // lucide-react : l'icône MoreHorizontal a été renommée/aliasée vers
-    // Ellipsis dans certaines versions, ce qui change la classe CSS générée
-    // (lucide-more-horizontal vs lucide-ellipsis). On matche les deux pour
-    // rester robuste aux mises à jour de dépendances.
-    const ACTION_MENU_ICON =
-      'svg[class*="lucide-more-horizontal"], svg[class*="lucide-ellipsis"]';
+    const ACTION_MENU_ICON = 'svg[class*="lucide-more-horizontal"], svg[class*="lucide-ellipsis"]';
 
-    // 1. View details
-    cy.contains("Mock Prospect One")
-      .parents("tr")
-      .find(ACTION_MENU_ICON)
-      .parent()
-      .click();
+    // 1. View details via "Ouvrir" link
+    cy.contains("Mock Prospect One").parents("tr").contains("a", "Ouvrir").click();
 
-    // the action menu item label in the dropdown is "Voir la fiche"
-    const DROPDOWN_CONTENT = '[role="menu"], [role="listbox"], [data-radix-popper-content-wrapper]';
-    cy.get(DROPDOWN_CONTENT).last().should("be.visible").within(() => {
-      cy.contains("Voir la fiche").click();
-    });
+    cy.url().should("include", "/clients/");
+    cy.contains("Mock Prospect One").should("be.visible");
 
-    cy.get('[role="dialog"]', { timeout: 6000 }).should('be.visible').within(() => {
-      cy.contains("Détails commerciaux").should("be.visible");
-      cy.contains("alpha@test.com").should("be.visible");
-      cy.get('button[aria-label="Fermer"]').first().click();
-    });
-
-    cy.get('[role="dialog"]').should('not.exist');
+    cy.go("back");
+    cy.contains("Mock Prospect One").should("be.visible");
 
     // 2. Edit client details
-    cy.contains("Mock Prospect One")
-      .parents("tr")
-      .find(ACTION_MENU_ICON)
-      .parent()
-      .click();
+    cy.contains("Mock Prospect One").parents("tr").find(ACTION_MENU_ICON).parent().click();
 
     cy.contains("Modifier").click();
-    cy.contains("Modifier les informations").should("be.visible");
+    cy.contains("Modifier le client").should("be.visible");
     cy.get('input[value="Mock Prospect One"]').clear().type("Mock Prospect One Modifié");
     cy.contains("button", "Enregistrer").click();
 
     cy.contains("Mock Prospect One Modifié").should("be.visible");
 
     // 3. Delete client
-    cy.contains("Mock Prospect One Modifié")
-      .parents("tr")
-      .find(ACTION_MENU_ICON)
-      .parent()
-      .click();
+    cy.contains("Mock Prospect One Modifié").parents("tr").find(ACTION_MENU_ICON).parent().click();
 
     cy.contains("Supprimer").click();
     cy.contains("Mock Prospect One Modifié").should("not.exist");

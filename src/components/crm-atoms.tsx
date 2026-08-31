@@ -39,13 +39,16 @@ export function StatusBadge({ status }: { status: string }) {
     "à faire": "bg-amber-500/10 text-amber-700 border-amber-200",
   };
   return (
-    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${map[status] ?? "bg-muted"}`}>
+    <span
+      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${map[status] ?? "bg-muted"}`}
+    >
       {status}
     </span>
   );
 }
 
 export function PriorityDot({ priority }: { priority: "low" | "medium" | "high" }) {
-  const c = priority === "high" ? "bg-rose-500" : priority === "medium" ? "bg-amber-500" : "bg-slate-300";
+  const c =
+    priority === "high" ? "bg-rose-500" : priority === "medium" ? "bg-amber-500" : "bg-slate-300";
   return <span className={`h-2 w-2 rounded-full ${c}`} title={priority} />;
 }

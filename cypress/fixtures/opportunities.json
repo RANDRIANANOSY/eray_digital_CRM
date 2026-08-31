@@ -1,0 +1,51 @@
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "clientId": 2,
+        "clientName": "Mock Client Two",
+        "company": "Beta Services",
+        "ownerId": 1,
+        "ownerName": "Antoine Roy",
+        "amount": 8000000,
+        "probability": 100,
+        "stage": "Vente gagnée",
+        "isWon": true,
+        "isLost": false,
+        "lastActivityAt": "2026-08-15T10:00:00Z",
+        "nextAction": null,
+        "closeDate": "2026-08-15",
+        "createdAt": "2026-06-01T10:00:00Z",
+        "updatedAt": "2026-08-15T10:00:00Z"
+      },
+      {
+        "id": 2,
+        "clientId": 1,
+        "clientName": "Mock Prospect One",
+        "company": "Alpha Tech",
+        "ownerId": 2,
+        "ownerName": "Léa Martin",
+        "amount": 3500000,
+        "probability": 40,
+        "stage": "Qualification",
+        "isWon": false,
+        "isLost": false,
+        "lastActivityAt": "2026-08-18T10:00:00Z",
+        "nextAction": "Envoyer devis",
+        "closeDate": "2026-09-01",
+        "createdAt": "2026-07-10T10:00:00Z",
+        "updatedAt": "2026-08-18T10:00:00Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "perPage": 20,
+      "total": 2,
+      "totalPages": 1
+    }
+  },
+  "message": null,
+  "errors": []
+}

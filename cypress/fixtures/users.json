@@ -1,0 +1,67 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "email": "admin@eray.com",
+      "firstName": "Adem",
+      "lastName": "Eray",
+      "fullName": "Adem Eray",
+      "role": "admin",
+      "phone": "+33 6 12 45 78 90",
+      "team": "Direction",
+      "status": "active",
+      "isVerified": true
+    },
+    {
+      "id": 2,
+      "email": "yanis@eray.com",
+      "firstName": "Yanis",
+      "lastName": "Moreau",
+      "fullName": "Yanis Moreau",
+      "role": "commercial",
+      "phone": "+33 6 74 09 33 21",
+      "team": "Ventes B2B",
+      "status": "active",
+      "isVerified": true
+    },
+    {
+      "id": 3,
+      "email": "lea@eray.com",
+      "firstName": "Léa",
+      "lastName": "Martin",
+      "fullName": "Léa Martin",
+      "role": "manager",
+      "phone": "+33 6 11 22 33 44",
+      "team": "Direction",
+      "status": "active",
+      "isVerified": true
+    },
+    {
+      "id": 4,
+      "email": "chloe@eray.com",
+      "firstName": "Chloé",
+      "lastName": "Bernard",
+      "fullName": "Chloé Bernard",
+      "role": "commercial",
+      "phone": "+33 6 55 66 77 88",
+      "team": "Ventes B2B",
+      "status": "invited",
+      "isVerified": false
+    },
+    {
+      "id": 5,
+      "email": "antoine@eray.com",
+      "firstName": "Antoine",
+      "lastName": "Roy",
+      "fullName": "Antoine Roy",
+      "role": "commercial",
+      "phone": "+33 6 99 88 77 66",
+      "team": "Grands comptes",
+      "status": "disabled",
+      "isVerified": true
+    }
+  ],
+  "message": null,
+  "errors": []
+}

@@ -8,13 +8,16 @@ import {
   FolderKanban,
   UserCog,
   Settings,
-  Sparkles,
-  Bell,
-  BarChart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/lib/auth";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { getRole } from "@/lib/api/auth-storage";
 
 import logoUrl from "@/assets/eray.jpg";
 
@@ -23,40 +26,23 @@ interface AppSidebarProps {
   setMobileOpen: (open: boolean) => void;
 }
 
+const nav = [
+  { to: "/", label: "Tableau de bord", icon: LayoutDashboard },
+  { to: "/clients", label: "Clients", icon: Users },
+  { to: "/activities", label: "Activités", icon: Activity },
+  { to: "/calendar", label: "Calendrier", icon: Calendar },
+  { to: "/pipeline", label: "Pipeline commercial", icon: KanbanSquare },
+  { to: "/projects", label: "Projets", icon: FolderKanban },
+  { to: "/users", label: "Utilisateurs", icon: UserCog, roles: ["admin", "manager"] },
+  { to: "/settings", label: "Paramètres", icon: Settings },
+] as const;
+
 export function AppSidebar({ mobileOpen, setMobileOpen }: AppSidebarProps) {
   const { pathname } = useLocation();
-  const { role } = useAuth();
-
-  const getNavForRole = (userRole: string) => {
-    const isComm = userRole === "commercial";
-    const isMgr = userRole === "manager";
-    const isAdmin = userRole === "admin";
-    
-    const baseNav = [
-      { to: "/", label: "Tableau de bord", icon: LayoutDashboard },
-      { to: "/clients", label: isComm ? "Mes Clients" : "Clients", icon: Users },
-      { to: "/pipeline", label: isComm ? "Mes Opportunités" : "Opportunités", icon: KanbanSquare },
-      { to: "/activities", label: isComm ? "Mes Activités" : "Activités", icon: Activity },
-      { to: "/calendar", label: "Calendrier", icon: Calendar },
-      { to: "/projects", label: isComm ? "Mes Projets" : "Projets", icon: FolderKanban },
-    ];
-
-    if (isMgr) {
-      baseNav.push({ to: "/users", label: "Équipe", icon: Users });
-      // baseNav.push({ to: "/stats", label: "Statistiques", icon: BarChart }); // Optionnel si on a les stats
-    }
-
-    if (isAdmin) {
-      baseNav.push({ to: "/users", label: "Utilisateurs", icon: UserCog });
-      baseNav.push({ to: "/settings", label: "Paramètres", icon: Settings });
-    }
-
-    baseNav.push({ to: "/reminders", label: isComm ? "Mes Rappels" : "Rappels", icon: Bell });
-
-    return baseNav;
-  };
-
-  const nav = getNavForRole(role);
+  const role = getRole();
+  const visibleNav = nav.filter(
+    (item) => !("roles" in item) || (item.roles as readonly string[]).includes(role ?? ""),
+  );
 
   const navContent = (
     <>
@@ -75,11 +61,8 @@ export function AppSidebar({ mobileOpen, setMobileOpen }: AppSidebarProps) {
           Espace de travail
         </div>
         <ul className="space-y-1">
-          {nav.map((item) => {
-            const active =
-              item.to === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.to);
+          {visibleNav.map((item) => {
+            const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
               <li key={item.to}>
@@ -100,25 +83,13 @@ export function AppSidebar({ mobileOpen, setMobileOpen }: AppSidebarProps) {
                     strokeWidth={active ? 2.2 : 2}
                   />
                   <span className="truncate">{item.label}</span>
-                  {active && (
-                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-                  )}
+                  {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
                 </Link>
               </li>
             );
           })}
         </ul>
       </nav>
-
-      <div className="p-3 border-t border-sidebar-border">
-        <div className="rounded-xl p-3 bg-gradient-to-br from-primary/8 to-violet/8 border border-primary/10">
-          <div className="text-xs font-semibold text-foreground">Plan Business</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">14 sièges utilisés sur 20</div>
-          <div className="mt-2 h-1.5 rounded-full bg-white/60 overflow-hidden">
-            <div className="h-full w-[70%] gradient-brand rounded-full" />
-          </div>
-        </div>
-      </div>
     </>
   );
 

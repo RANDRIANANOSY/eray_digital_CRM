@@ -55,7 +55,7 @@ export function getStoredUser(): AuthUser | null {
 
   const role = mapFrenchRole(storedRole);
   const member = members.find(
-    (m) => m.name === storedName || m.email.toLowerCase() === storedName.toLowerCase()
+    (m) => m.name === storedName || m.email.toLowerCase() === storedName.toLowerCase(),
   );
 
   return {
@@ -64,17 +64,19 @@ export function getStoredUser(): AuthUser | null {
     role,
     team: member?.team || "Non assigné",
     initials: member?.initials || storedName.slice(0, 2).toUpperCase(),
-    member: member || ({
-      id: "unknown",
-      name: storedName,
-      role: role === "admin" ? "Administrateur" : role === "manager" ? "Manager" : "Commercial",
-      email: "",
-      phone: "",
-      team: "Non assigné",
-      status: "Actif",
-      initials: storedName.slice(0, 2).toUpperCase(),
-      lastActive: new Date().toISOString(),
-    } as Member),
+    member:
+      member ||
+      ({
+        id: "unknown",
+        name: storedName,
+        role: role === "admin" ? "Administrateur" : role === "manager" ? "Manager" : "Commercial",
+        email: "",
+        phone: "",
+        team: "Non assigné",
+        status: "Actif",
+        initials: storedName.slice(0, 2).toUpperCase(),
+        lastActive: new Date().toISOString(),
+      } as Member),
   };
 }
 
@@ -96,13 +98,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (!user) {
-    return <AuthContext.Provider value={{ ...EMPTY_AUTH, refreshUser }}>{children}</AuthContext.Provider>;
+    return (
+      <AuthContext.Provider value={{ ...EMPTY_AUTH, refreshUser }}>{children}</AuthContext.Provider>
+    );
   }
 
   const isRole = (...roles: RoleKey[]) => roles.includes(user.role);
 
   const canEditActivity = (activityOrOwner: string | { owner?: string }) => {
-    const owner = typeof activityOrOwner === "string" ? activityOrOwner : activityOrOwner.owner || "";
+    const owner =
+      typeof activityOrOwner === "string" ? activityOrOwner : activityOrOwner.owner || "";
     return user.role === "admin" || user.role === "manager" || owner === user.name;
   };
 

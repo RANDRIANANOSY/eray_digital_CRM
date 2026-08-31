@@ -32,7 +32,17 @@ export const kpis = seedData.kpis;
 
 export type Activity = {
   id: string;
-  type: "call" | "meeting" | "email" | "quote" | "contract" | "visit" | "note" | "follow-up" | "task" | "whatsapp";
+  type:
+    | "call"
+    | "meeting"
+    | "email"
+    | "quote"
+    | "contract"
+    | "visit"
+    | "note"
+    | "follow-up"
+    | "task"
+    | "whatsapp";
   title: string;
   client: string;
   owner: string;
@@ -139,7 +149,13 @@ export const stages: Stage[] = [
 ];
 
 export type TaskStatus = "À faire" | "En cours" | "Terminé" | "En retard";
-export type ProjectTask = { id: string; label: string; status: TaskStatus; assignee: string; due: string };
+export type ProjectTask = {
+  id: string;
+  label: string;
+  status: TaskStatus;
+  assignee: string;
+  due: string;
+};
 
 export type Project = {
   id: string;

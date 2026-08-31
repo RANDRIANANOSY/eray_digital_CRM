@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useNavigate } from "react-router";
+import { useSearchParams } from "react-router";
 import { Search, Bell, Plus, ChevronDown, Command, Menu, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth";
 import logoUrl from "@/assets/eray.jpg";
 import {
   DropdownMenu,
@@ -20,12 +19,15 @@ import {
   NewEventDialog,
 } from "@/components/quick-create-dialogs";
 import { NewActivityDialog } from "@/components/new-activity-dialog";
+import { useMe } from "@/hooks/api/useMe";
+import { useLogout } from "@/hooks/api/useAuth";
+import { getName, getRole } from "@/lib/api/auth-storage";
 
 const Route = {
   useSearch: (): { q?: string } => {
     const [searchParams] = useSearchParams();
     return { q: searchParams.get("q") || undefined };
-  }
+  },
 };
 
 type AppTopbarProps = {
@@ -35,9 +37,7 @@ type AppTopbarProps = {
 type QuickAction = "client" | "activity" | "event" | "opportunity" | "project" | null;
 
 export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
-  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, refreshUser } = useAuth();
   const search = Route.useSearch() || {};
   const query = search.q || "";
   const [searchTerm, setSearchTerm] = useState(query);
@@ -46,9 +46,12 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
     setSearchTerm(query);
   }, [query]);
 
-  const setSearch = useCallback((newSearch: { q?: string }) => {
-    setSearchParams(newSearch.q ? { q: newSearch.q } : {});
-  }, [setSearchParams]);
+  const setSearch = useCallback(
+    (newSearch: { q?: string }) => {
+      setSearchParams(newSearch.q ? { q: newSearch.q } : {});
+    },
+    [setSearchParams],
+  );
 
   const handleSearchChange = useCallback((val: string) => {
     setSearchTerm(val);
@@ -61,21 +64,13 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
     return () => window.clearTimeout(timeout);
   }, [searchTerm, setSearch]);
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("name");
-    localStorage.removeItem("login_time");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("role");
-    sessionStorage.removeItem("name");
-    sessionStorage.removeItem("login_time");
-    refreshUser();
-    navigate("/login");
-  }, [navigate, refreshUser]);
+  const handleLogout = useLogout();
 
-  const userName = user?.name || "Utilisateur";
-  const userRole = user?.role === "admin" ? "Administrateur" : user?.role === "manager" ? "Manager" : "Commercial";
+  const { data: me } = useMe();
+  const userName = me?.fullName ?? getName() ?? "Utilisateur";
+  const roleSlug = me?.role ?? getRole();
+  const userRole =
+    roleSlug === "admin" ? "Administrateur" : roleSlug === "manager" ? "Manager" : "Commercial";
 
   const [action, setAction] = useState<QuickAction>(null);
   const [theme, setTheme] = useState(() => {
@@ -128,7 +123,10 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button data-cy="company-menu-trigger" className="hidden md:flex items-center gap-2 h-9 px-3 rounded-lg hover:bg-muted transition-colors border border-border/50">
+            <button
+              data-cy="company-menu-trigger"
+              className="hidden md:flex items-center gap-2 h-9 px-3 rounded-lg hover:bg-muted transition-colors border border-border/50"
+            >
               <div className="h-6 w-6 rounded overflow-hidden bg-white flex items-center justify-center border border-border shadow-sm">
                 <img src={logoUrl} alt="Eray Logo" className="h-5 w-5 object-contain" />
               </div>
@@ -170,19 +168,32 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" className="h-9 gradient-brand text-white border-0 hover:opacity-95 shadow-float">
+              <Button
+                size="sm"
+                className="h-9 gradient-brand text-white border-0 hover:opacity-95 shadow-float"
+              >
                 <Plus className="h-4 w-4 mr-1" /> Nouveau
                 <ChevronDown className="h-3.5 w-3.5 ml-1 opacity-80" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>Actions rapides</DropdownMenuLabel>
-              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("client"), 0)}>+ Nouveau client</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("activity"), 0)}>+ Activité</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("event"), 0)}>+ Rendez-vous</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("opportunity"), 0)}>+ Opportunité</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("client"), 0)}>
+                + Nouveau client
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("activity"), 0)}>
+                + Activité
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("event"), 0)}>
+                + Rendez-vous
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("opportunity"), 0)}>
+                + Opportunité
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("project"), 0)}>+ Projet</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setTimeout(() => setAction("project"), 0)}>
+                + Projet
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -208,7 +219,11 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
               <button className="flex items-center gap-2 h-9 pl-1 pr-2 rounded-lg hover:bg-muted transition-colors">
                 <Avatar className="h-7 w-7">
                   <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-[11px] font-semibold">
-                    {userName.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                    {userName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block text-left leading-tight">
@@ -228,11 +243,31 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
         </div>
       </div>
 
-      <NewClientDialog open={action === "client"} onOpenChange={(o) => !o && setAction(null)} trigger={<span />} />
-      <NewActivityDialog open={action === "activity"} onOpenChange={(o) => !o && setAction(null)} trigger={<span />} />
-      <NewEventDialog open={action === "event"} onOpenChange={(o) => !o && setAction(null)} trigger={<span />} />
-      <NewOpportunityDialog open={action === "opportunity"} onOpenChange={(o) => !o && setAction(null)} trigger={<span />} />
-      <NewProjectDialog open={action === "project"} onOpenChange={(o) => !o && setAction(null)} trigger={<span />} />
+      <NewClientDialog
+        open={action === "client"}
+        onOpenChange={(o) => !o && setAction(null)}
+        trigger={<span />}
+      />
+      <NewActivityDialog
+        open={action === "activity"}
+        onOpenChange={(o) => !o && setAction(null)}
+        trigger={<span />}
+      />
+      <NewEventDialog
+        open={action === "event"}
+        onOpenChange={(o) => !o && setAction(null)}
+        trigger={<span />}
+      />
+      <NewOpportunityDialog
+        open={action === "opportunity"}
+        onOpenChange={(o) => !o && setAction(null)}
+        trigger={<span />}
+      />
+      <NewProjectDialog
+        open={action === "project"}
+        onOpenChange={(o) => !o && setAction(null)}
+        trigger={<span />}
+      />
     </header>
   );
 }

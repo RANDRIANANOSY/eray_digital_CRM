@@ -4,7 +4,12 @@ import tsConfigPaths from "vite-tsconfig-paths";
 import viteReact from "@vitejs/plugin-react";
 import istanbul from "vite-plugin-istanbul";
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  base: command === "serve" ? "/" : "/app/",
+  build: {
+    outDir: "../back/public/app",
+    emptyOutDir: true,
+  },
   plugins: [
     viteReact(),
     tailwindcss(),
@@ -19,10 +24,16 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": `${process.cwd()}/src`
+      "@": `${process.cwd()}/src`,
     },
   },
   server: {
     port: 5173,
-  }
-});
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+    },
+  },
+}));

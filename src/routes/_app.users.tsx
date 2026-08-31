@@ -1,107 +1,198 @@
 import { usePageMeta } from "@/hooks/use-page-meta";
-import { useState, useMemo, useEffect } from "react";
-import { Plus, Shield, Users as UsersIcon, Eye, Edit, Trash2, KeyRound, Power, Search, X, Mail, Phone, Clock } from "lucide-react";
-import { members as initialMembers, Member } from "@/lib/crm-data";
+import { useState, useMemo } from "react";
+import {
+  Plus,
+  Shield,
+  Users as UsersIcon,
+  Eye,
+  Edit,
+  KeyRound,
+  Power,
+  Search,
+  X,
+} from "lucide-react";
+import { useInviteUser, useSetUserStatus, useUpdateUser, useUsers } from "@/hooks/api/useUsers";
+import { useMe } from "@/hooks/api/useMe";
+import { useRequireRole } from "@/hooks/use-require-role";
+import { ConfirmDialog, type ConfirmDialogState } from "@/components/confirm-dialog";
+import { authApi, ApiError } from "@/lib/api";
+import type { UserDto, UserRole } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useCRM } from "@/lib/store";
 
-
-const roleColor: Record<string, string> = {
-  Administrateur: "bg-violet-500/10 text-violet-700 border-violet-200",
-  Manager: "bg-primary/10 text-primary border-primary/20",
-  Commercial: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
+const roleLabel: Record<UserRole, string> = {
+  admin: "Administrateur",
+  manager: "Manager",
+  commercial: "Commercial",
 };
-
+const roleColor: Record<UserRole, string> = {
+  admin: "bg-violet-500/10 text-violet-700 border-violet-200",
+  manager: "bg-primary/10 text-primary border-primary/20",
+  commercial: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
+};
+const statusLabel: Record<string, string> = {
+  active: "Actif",
+  invited: "Invité",
+  disabled: "Désactivé",
+};
 const statusBadgeClass: Record<string, string> = {
-  Actif: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 px-3 py-1 rounded-full text-xs font-semibold inline-block",
-  Invité: "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 px-3 py-1 rounded-full text-xs font-semibold inline-block",
-  Désactivé: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-semibold inline-block",
+  active:
+    "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400 px-3 py-1 rounded-full text-xs font-semibold inline-block",
+  invited:
+    "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 px-3 py-1 rounded-full text-xs font-semibold inline-block",
+  disabled:
+    "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 px-3 py-1 rounded-full text-xs font-semibold inline-block",
 };
+
+function errorMessage(err: unknown): string {
+  return err instanceof ApiError ? err.message : "Une erreur est survenue. Veuillez réessayer.";
+}
 
 export default function UsersPage() {
-  usePageMeta("Utilisateurs — Eray CRM", "Gérez les membres, rôles et permissions de votre équipe.");
-  const { members: users, setMembers: setUsers } = useCRM();
+  usePageMeta(
+    "Utilisateurs — Eray CRM",
+    "Gérez les membres, rôles et permissions de votre équipe.",
+  );
+  const allowed = useRequireRole(["admin", "manager"]);
+
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<Member | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
   const [dialogType, setDialogType] = useState<"details" | "edit" | null>(null);
+  const [togglingId, setTogglingId] = useState<number | null>(null);
 
+  const [inviteFirstName, setInviteFirstName] = useState("");
+  const [inviteLastName, setInviteLastName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [invitePhone, setInvitePhone] = useState("");
-  const [inviteRole, setInviteRole] = useState<Member["role"]>("Commercial");
+  const [inviteRole, setInviteRole] = useState<UserRole>("commercial");
 
-  // Filtering states
   const [query, setQuery] = useState("");
-  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<UserRole | "">("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedTeam, setSelectedTeam] = useState<string>("");
-
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 4;
+  const ITEMS_PER_PAGE = 8;
+  const [confirm, setConfirm] = useState<ConfirmDialogState | null>(null);
 
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [query, selectedRole, selectedStatus, selectedTeam]);
+  const { data: users, isLoading, isError, error } = useUsers();
+  const { data: me } = useMe();
+  const inviteUser = useInviteUser();
+  const updateUser = useUpdateUser();
+  const setUserStatus = useSetUserStatus();
 
-  // Filtering logic
+  const teamOptions = useMemo(
+    () => Array.from(new Set((users ?? []).map((u) => u.team).filter((t): t is string => !!t))),
+    [users],
+  );
+
   const filteredUsers = useMemo(() => {
-    return users.filter((u) => {
+    return (users ?? []).filter((u) => {
       const matchesSearch =
-        u.name.toLowerCase().includes(query.toLowerCase()) ||
+        u.fullName.toLowerCase().includes(query.toLowerCase()) ||
         u.email.toLowerCase().includes(query.toLowerCase());
-
       const matchesRole = !selectedRole || u.role === selectedRole;
       const matchesStatus = !selectedStatus || u.status === selectedStatus;
       const matchesTeam = !selectedTeam || u.team === selectedTeam;
-
       return matchesSearch && matchesRole && matchesStatus && matchesTeam;
     });
   }, [users, query, selectedRole, selectedStatus, selectedTeam]);
 
   const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE) || 1;
   const activePage = Math.min(currentPage, totalPages);
+  const paginatedUsers = filteredUsers.slice(
+    (activePage - 1) * ITEMS_PER_PAGE,
+    activePage * ITEMS_PER_PAGE,
+  );
 
-  const paginatedUsers = useMemo(() => {
-    const start = (activePage - 1) * ITEMS_PER_PAGE;
-    return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredUsers, activePage]);
+  if (!allowed) return null;
 
-  const handleInvite = () => {
-    if (inviteEmail) {
-      const newUser: Member = {
-        id: `u${Date.now()}`,
-        name: "Nouvel Utilisateur",
+  const handleInvite = async () => {
+    if (!inviteEmail || !inviteFirstName || !inviteLastName) return;
+    try {
+      await inviteUser.mutateAsync({
+        firstName: inviteFirstName,
+        lastName: inviteLastName,
         email: inviteEmail,
-        phone: invitePhone || "+33 6 00 00 00 00",
         role: inviteRole,
-        team: "Non assigné",
-        status: "Invité",
-        lastActive: "Jamais",
-        initials: inviteEmail.substring(0, 2).toUpperCase()
-      };
-      setUsers([newUser, ...users]);
+      });
+      toast.success("Invitation envoyée", {
+        description: `${inviteFirstName} ${inviteLastName} recevra un e-mail pour définir son mot de passe.`,
+      });
+      setInviteFirstName("");
+      setInviteLastName("");
       setInviteEmail("");
-      setInvitePhone("");
+      setInviteRole("commercial");
       setIsInviteOpen(false);
+    } catch (err) {
+      toast.error("Invitation impossible", { description: errorMessage(err) });
     }
   };
 
-  const handleDelete = (id: string) => {
-    setUsers(users.filter(u => u.id !== id));
-  };
-
-  const handleEditSave = () => {
-    if (selectedUser) {
-      setUsers(users.map(u => u.id === selectedUser.id ? selectedUser : u));
+  const handleEditSave = async (role: UserRole, team: string) => {
+    if (!selectedUser) return;
+    try {
+      await updateUser.mutateAsync({ id: selectedUser.id, payload: { role, team: team || null } });
+      toast.success("Membre mis à jour");
       setDialogType(null);
       setSelectedUser(null);
+    } catch (err) {
+      toast.error("Mise à jour impossible", { description: errorMessage(err) });
+    }
+  };
+
+  const performToggle = async (u: UserDto, newStatus: "active" | "disabled") => {
+    setTogglingId(u.id);
+    try {
+      await setUserStatus.mutateAsync({ id: u.id, status: newStatus });
+      toast.success("Statut mis à jour", {
+        description: `${u.fullName} est maintenant ${newStatus === "disabled" ? "désactivé" : "actif"}.`,
+      });
+    } catch (err) {
+      toast.error("Mise à jour impossible", { description: errorMessage(err) });
+    } finally {
+      setTogglingId(null);
+    }
+  };
+
+  const handleToggleStatus = async (u: UserDto) => {
+    if (me && u.id === me.id && u.status === "active") {
+      toast.error("Impossible de désactiver votre propre compte");
+      return;
+    }
+    const newStatus = u.status === "active" ? "disabled" : "active";
+    if (newStatus === "disabled") {
+      setConfirm({
+        title: "Désactiver le compte",
+        description: `Voulez-vous désactiver le compte de ${u.fullName} ? Il ne pourra plus se connecter.`,
+        confirmLabel: "Désactiver",
+        destructive: true,
+        onConfirm: () => performToggle(u, "disabled"),
+      });
+      return;
+    }
+    await performToggle(u, "active");
+  };
+
+  const handleResetPassword = async (u: UserDto) => {
+    try {
+      await authApi.requestPasswordReset(u.email);
+      toast.success(`Réinitialisation envoyée à ${u.fullName}`, {
+        description: "Un e-mail de réinitialisation a été envoyé.",
+      });
+    } catch (err) {
+      toast.error("Envoi impossible", { description: errorMessage(err) });
     }
   };
 
@@ -110,9 +201,11 @@ export default function UsersPage() {
       <div className="flex items-end justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold">Utilisateurs</h1>
-          <p className="text-sm text-muted-foreground mt-1">{users.length} membres • 3 équipes</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {users ? `${users.length} membres` : "Chargement…"}
+          </p>
         </div>
-        
+
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gradient-brand text-white border-0 h-9">
@@ -123,59 +216,93 @@ export default function UsersPage() {
             <DialogHeader>
               <DialogTitle>Inviter un nouveau membre</DialogTitle>
               <DialogDescription>
-                Envoyez une invitation par email pour rejoindre Eray CRM.
+                Un e-mail lui sera envoyé pour définir son mot de passe.
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
-              <div>
-                <Label htmlFor="email">Adresse email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="prenom.nom@entreprise.com" 
-                  value={inviteEmail} 
-                  onChange={(e) => setInviteEmail(e.target.value)} 
-                  className="mt-2"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="firstName">Prénom</Label>
+                  <Input
+                    id="firstName"
+                    value={inviteFirstName}
+                    onChange={(e) => setInviteFirstName(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Nom</Label>
+                  <Input
+                    id="lastName"
+                    value={inviteLastName}
+                    onChange={(e) => setInviteLastName(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
               </div>
               <div>
-                <Label htmlFor="phone">Téléphone</Label>
-                <Input 
-                  id="phone" 
-                  type="text" 
-                  placeholder="+33 6 12 45 78 90" 
-                  value={invitePhone} 
-                  onChange={(e) => setInvitePhone(e.target.value)} 
+                <Label htmlFor="email">Adresse email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="prenom.nom@entreprise.com"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
                   className="mt-2"
                 />
               </div>
               <div>
                 <Label htmlFor="role">Rôle</Label>
-                <select 
-                  id="role" 
-                  value={inviteRole} 
-                  onChange={(e) => setInviteRole(e.target.value as Member["role"])}
+                <select
+                  id="role"
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value as UserRole)}
                   className="mt-2 w-full h-10 rounded-lg border border-input px-3 text-sm focus:border-ring outline-none bg-background"
                 >
-                  <option value="Commercial">Commercial</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Administrateur">Administrateur</option>
+                  <option value="commercial">Commercial</option>
+                  <option value="manager">Manager</option>
+                  <option value="admin">Administrateur</option>
                 </select>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsInviteOpen(false)}>Annuler</Button>
-              <Button onClick={handleInvite} className="gradient-brand text-white border-0">Envoyer l'invitation</Button>
+              <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+                Annuler
+              </Button>
+              <Button
+                onClick={handleInvite}
+                disabled={inviteUser.isPending}
+                className="gradient-brand text-white border-0"
+              >
+                {inviteUser.isPending ? "Envoi…" : "Envoyer l'invitation"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <StatCard icon={UsersIcon} label="Membres actifs" value={users.filter(u => u.status === 'Actif').length.toString()} tone="brand" />
-        <StatCard icon={Shield} label="Administrateurs" value={users.filter(u => u.role === 'Administrateur').length.toString()} tone="violet" />
-        <StatCard icon={UsersIcon} label="Invitations en attente" value={users.filter(u => u.status === 'Invité').length.toString()} tone="warning" />
-      </div>
+      {users && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <StatCard
+            icon={UsersIcon}
+            label="Membres actifs"
+            value={users.filter((u) => u.status === "active").length.toString()}
+            tone="brand"
+          />
+          <StatCard
+            icon={Shield}
+            label="Administrateurs"
+            value={users.filter((u) => u.role === "admin").length.toString()}
+            tone="violet"
+          />
+          <StatCard
+            icon={UsersIcon}
+            label="Invitations en attente"
+            value={users.filter((u) => u.status === "invited").length.toString()}
+            tone="warning"
+          />
+        </div>
+      )}
 
       {/* Filters */}
       <div className="card-elegant p-3 flex flex-wrap items-center gap-2">
@@ -183,48 +310,57 @@ export default function UsersPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Rechercher un membre, un email…"
             className="w-full h-9 pl-9 pr-3 rounded-lg bg-muted/60 border border-transparent focus:bg-card focus:border-ring outline-none text-sm"
           />
         </div>
-        
-        {/* Role Filter */}
+
         <select
           value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
+          onChange={(e) => {
+            setSelectedRole(e.target.value as UserRole | "");
+            setCurrentPage(1);
+          }}
           className="h-9 rounded-lg border border-input px-3 text-xs outline-none bg-background text-foreground/80 focus:border-ring"
         >
           <option value="">Tous les rôles</option>
-          <option value="Administrateur">Administrateurs</option>
-          <option value="Manager">Managers</option>
-          <option value="Commercial">Commerciaux</option>
+          <option value="admin">Administrateurs</option>
+          <option value="manager">Managers</option>
+          <option value="commercial">Commerciaux</option>
         </select>
 
-        {/* Status Filter */}
         <select
           value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
+          onChange={(e) => {
+            setSelectedStatus(e.target.value);
+            setCurrentPage(1);
+          }}
           className="h-9 rounded-lg border border-input px-3 text-xs outline-none bg-background text-foreground/80 focus:border-ring"
         >
           <option value="">Tous les statuts</option>
-          <option value="Actif">Actif</option>
-          <option value="Invité">Invité</option>
-          <option value="Désactivé">Désactivé</option>
+          <option value="active">Actif</option>
+          <option value="invited">Invité</option>
+          <option value="disabled">Désactivé</option>
         </select>
 
-        {/* Team Filter */}
         <select
           value={selectedTeam}
-          onChange={(e) => setSelectedTeam(e.target.value)}
+          onChange={(e) => {
+            setSelectedTeam(e.target.value);
+            setCurrentPage(1);
+          }}
           className="h-9 rounded-lg border border-input px-3 text-xs outline-none bg-background text-foreground/80 focus:border-ring"
         >
           <option value="">Toutes les équipes</option>
-          <option value="Ventes B2B">Ventes B2B</option>
-          <option value="Grands comptes">Grands comptes</option>
-          <option value="PME">PME</option>
-          <option value="Direction">Direction</option>
-          <option value="Non assigné">Non assigné</option>
+          {teamOptions.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
 
         {(query !== "" || selectedRole !== "" || selectedStatus !== "" || selectedTeam !== "") && (
@@ -244,107 +380,144 @@ export default function UsersPage() {
         )}
       </div>
 
-      <div className="card-elegant overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="text-left font-semibold px-5 py-3">Utilisateur</th>
-              <th className="text-left font-semibold px-2 py-3">Rôle</th>
-              <th className="text-left font-semibold px-2 py-3">Téléphone</th>
-              <th className="text-left font-semibold px-2 py-3">Statut</th>
-              <th className="text-right font-semibold px-5 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {paginatedUsers.map((m) => (
-              <tr key={m.id} className="hover:bg-muted/30">
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-9 w-9">
-                      <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-semibold">
-                        {m.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-semibold text-foreground">{m.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{m.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-2 py-3.5 text-muted-foreground font-medium">
-                  {m.role}
-                </td>
-                <td className="px-2 py-3.5 text-muted-foreground">
-                  {m.phone || "—"}
-                </td>
-                <td className="px-2 py-3.5">
-                  <span className={statusBadgeClass[m.status] || "bg-muted text-muted-foreground px-3 py-1 rounded-full text-xs font-semibold"}>
-                    {m.status}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button 
-                      onClick={() => {
-                        setSelectedUser(m);
-                        setDialogType("details");
-                      }} 
-                      className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors"
-                      title="Voir les détails"
-                      data-cy="user-details-btn"
-                    >
-                      <Eye className="h-4.5 w-4.5" />
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setSelectedUser(m);
-                        setDialogType("edit");
-                      }} 
-                      className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors"
-                      title="Modifier"
-                      data-cy="user-edit-btn"
-                    >
-                      <Edit className="h-4.5 w-4.5" />
-                    </button>
-                    <button 
-                      onClick={() => {
-                        toast.success(`Réinitialisation du mot de passe de ${m.name}`, { description: "Un email de réinitialisation a été envoyé." });
-                      }} 
-                      className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors"
-                      title="Réinitialiser le mot de passe"
-                    >
-                      <KeyRound className="h-4.5 w-4.5" />
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const newStatus = m.status === "Actif" ? "Désactivé" : "Actif";
-                        setUsers(users.map(u => u.id === m.id ? { ...u, status: newStatus } : u));
-                        toast.success(`Statut mis à jour`, { description: `Le membre ${m.name} est maintenant ${newStatus.toLowerCase()}.` });
-                      }}
-                      className={`p-1.5 hover:bg-muted rounded transition-colors ${m.status === "Actif" ? "text-foreground/70 hover:text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                      title={m.status === "Actif" ? "Désactiver" : "Activer"}
-                    >
-                      <Power className="h-4.5 w-4.5" />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(m.id)}
-                      className="p-1.5 hover:bg-red-50 rounded text-red-500 hover:text-red-600 transition-colors"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="h-4.5 w-4.5" />
-                    </button>
-                  </div>
-                </td>
+      {isError ? (
+        <div className="card-elegant p-10 text-center text-sm text-destructive">
+          {errorMessage(error)}
+        </div>
+      ) : isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-xl" />
+          ))}
+        </div>
+      ) : (
+        <div className="card-elegant overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="text-left font-semibold px-5 py-3">Utilisateur</th>
+                <th className="text-left font-semibold px-2 py-3">Rôle</th>
+                <th className="text-left font-semibold px-2 py-3">Équipe</th>
+                <th className="text-left font-semibold px-2 py-3">Statut</th>
+                <th className="text-right font-semibold px-5 py-3">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {paginatedUsers.map((u) => (
+                <tr key={u.id} className="hover:bg-muted/30">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-semibold">
+                          {u.firstName[0]}
+                          {u.lastName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-semibold text-foreground">{u.fullName}</div>
+                        <div className="text-[11px] text-muted-foreground">{u.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-2 py-3.5">
+                    <span
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${roleColor[u.role]}`}
+                    >
+                      {roleLabel[u.role]}
+                    </span>
+                  </td>
+                  <td className="px-2 py-3.5 text-muted-foreground">{u.team || "—"}</td>
+                  <td className="px-2 py-3.5">
+                    <span className={statusBadgeClass[u.status]}>{statusLabel[u.status]}</span>
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedUser(u);
+                          setDialogType("details");
+                        }}
+                        className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        title="Voir les détails"
+                        data-cy="user-details-btn"
+                        disabled={togglingId !== null}
+                      >
+                        <Eye className="h-4.5 w-4.5" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedUser(u);
+                          setDialogType("edit");
+                        }}
+                        className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        title="Modifier"
+                        data-cy="user-edit-btn"
+                        disabled={togglingId !== null}
+                      >
+                        <Edit className="h-4.5 w-4.5" />
+                      </button>
+                      <button
+                        onClick={() => handleResetPassword(u)}
+                        className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        title="Réinitialiser le mot de passe"
+                        disabled={togglingId !== null}
+                        data-cy="user-reset-password-btn"
+                      >
+                        <KeyRound className="h-4.5 w-4.5" />
+                      </button>
+                      <button
+                        onClick={() => handleToggleStatus(u)}
+                        className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                        title={
+                          me && u.id === me.id && u.status === "active"
+                            ? "Vous ne pouvez pas désactiver votre propre compte"
+                            : u.status === "active"
+                              ? "Désactiver"
+                              : "Activer"
+                        }
+                        disabled={
+                          togglingId !== null ||
+                          (me != null && u.id === me.id && u.status === "active")
+                        }
+                        data-cy="user-toggle-status-btn"
+                      >
+                        {togglingId === u.id ? (
+                          <svg
+                            className="animate-spin h-4 w-4 text-muted-foreground"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                            />
+                          </svg>
+                        ) : (
+                          <Power className="h-4.5 w-4.5" />
+                        )}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-      {/* Pagination Footer */}
       <div className="flex items-center justify-between mt-4 px-2">
         <div className="text-xs text-muted-foreground font-medium">
-          Affichage {filteredUsers.length > 0 ? (activePage - 1) * ITEMS_PER_PAGE + 1 : 0}–{Math.min(activePage * ITEMS_PER_PAGE, filteredUsers.length)} sur {filteredUsers.length}
+          Affichage {filteredUsers.length > 0 ? (activePage - 1) * ITEMS_PER_PAGE + 1 : 0}–
+          {Math.min(activePage * ITEMS_PER_PAGE, filteredUsers.length)} sur {filteredUsers.length}
         </div>
         <div className="flex gap-2">
           <Button
@@ -368,170 +541,161 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Modals for Details and Edit */}
-      {selectedUser && (
-        <Dialog open={dialogType !== null} onOpenChange={(open) => !open && setDialogType(null)}>
-          <DialogContent className="p-0 overflow-hidden rounded-2xl max-w-lg gap-0 z-50">
-            {dialogType === "details" ? (
-              <>
-                <DialogHeader className="border-b border-border/40 pb-4 bg-gradient-to-r from-background to-muted/20 px-6 pt-6">
-                  <div className="flex items-center gap-3">
-                    <span className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                      <UsersIcon className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
-                        Détails du membre
-                      </DialogTitle>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        Fiche collaborateur & permissions
-                      </p>
-                    </div>
-                  </div>
-                </DialogHeader>
-
-                <div className="p-6 space-y-5 bg-card">
-                  {/* Profile Header Card */}
-                  <div className="p-5 rounded-2xl border border-border/60 bg-gradient-to-br from-background via-card to-muted/10 shadow-sm relative overflow-hidden group flex items-center gap-4">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/8 transition-all duration-500" />
-                    <Avatar className="h-16 w-16 ring-4 ring-primary/10 shadow-sm shrink-0">
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-lg font-bold">
-                        {selectedUser.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-lg text-foreground truncate leading-snug">
-                        {selectedUser.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground truncate mt-1 flex items-center gap-1.5">
-                        <Mail className="h-3.5 w-3.5 text-muted-foreground/75" /> {selectedUser.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Metadata Grid */}
-                  <div className="grid grid-cols-2 gap-3.5">
-                    {/* Role Card */}
-                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
-                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Rôle</span>
-                      <div className="mt-1 flex items-center gap-2">
-                        <span className="h-7 w-7 rounded-lg bg-primary/5 text-primary flex items-center justify-center">
-                          <Shield className="h-3.5 w-3.5" />
-                        </span>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${roleColor[selectedUser.role] || "bg-muted text-foreground"}`}>
-                          {selectedUser.role}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Équipe Card */}
-                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
-                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Équipe</span>
-                      <div className="font-semibold text-sm mt-1 flex items-center gap-2 text-foreground">
-                        <span className="h-7 w-7 rounded-lg bg-violet-500/5 text-violet-500 flex items-center justify-center">
-                          <UsersIcon className="h-3.5 w-3.5" />
-                        </span>
-                        <span className="truncate text-xs">{selectedUser.team}</span>
-                      </div>
-                    </div>
-
-                    {/* Statut Card */}
-                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
-                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Statut</span>
-                      <div className="mt-1 flex items-center">
-                        <span className={statusBadgeClass[selectedUser.status] || "bg-muted text-foreground"}>
-                          {selectedUser.status}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Téléphone Card */}
-                    <div className="p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-24">
-                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Téléphone</span>
-                      <div className="font-semibold text-sm mt-1 flex items-center gap-2 text-foreground">
-                        <span className="h-7 w-7 rounded-lg bg-emerald-500/5 text-emerald-500 flex items-center justify-center">
-                          <Phone className="h-3.5 w-3.5" />
-                        </span>
-                        <span className="truncate text-xs">{selectedUser.phone || "—"}</span>
-                      </div>
-                    </div>
-
-                    {/* Dernière activité Card */}
-                    <div className="col-span-2 p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/40 transition-colors duration-200 flex flex-col justify-between h-20">
-                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dernière activité</span>
-                      <div className="font-semibold text-sm mt-1 flex items-center gap-2 text-foreground">
-                        <span className="h-7 w-7 rounded-lg bg-amber-500/5 text-amber-500 flex items-center justify-center">
-                          <Clock className="h-3.5 w-3.5" />
-                        </span>
-                        <span>{selectedUser.lastActive}</span>
-                      </div>
-                    </div>
-                  </div>
+      {selectedUser && dialogType === "details" && (
+        <Dialog open onOpenChange={(open) => !open && setDialogType(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Détails du membre</DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-lg font-bold">
+                    {selectedUser.firstName[0]}
+                    {selectedUser.lastName[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold text-lg">{selectedUser.fullName}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
                 </div>
-              </>
-            ) : (
-              <>
-                <DialogHeader className="px-6 pt-6 pb-2">
-                  <DialogTitle>Modifier le membre</DialogTitle>
-                </DialogHeader>
-                <div className="px-6 pb-4 space-y-4">
-                  <div>
-                    <Label>Nom</Label>
-                    <Input 
-                      value={selectedUser.name} 
-                      onChange={(e) => setSelectedUser({...selectedUser, name: e.target.value})} 
-                      className="mt-2"
-                    />
-                  </div>
-                  <div>
-                    <Label>Téléphone</Label>
-                    <Input 
-                      value={selectedUser.phone || ""} 
-                      onChange={(e) => setSelectedUser({...selectedUser, phone: e.target.value})} 
-                      className="mt-2"
-                    />
-                  </div>
-                  <div>
-                    <Label>Rôle</Label>
-                    <select 
-                      value={selectedUser.role} 
-                      onChange={(e) => setSelectedUser({...selectedUser, role: e.target.value as Member["role"]})}
-                      className="mt-2 w-full h-10 rounded-lg border border-input px-3 text-sm focus:border-ring outline-none bg-background"
-                    >
-                      <option value="Commercial">Commercial</option>
-                      <option value="Manager">Manager</option>
-                      <option value="Administrateur">Administrateur</option>
-                    </select>
-                  </div>
-                  <div>
-                    <Label>Équipe</Label>
-                    <select 
-                      value={selectedUser.team} 
-                      onChange={(e) => setSelectedUser({...selectedUser, team: e.target.value})}
-                      className="mt-2 w-full h-10 rounded-lg border border-input px-3 text-sm focus:border-ring outline-none bg-background"
-                    >
-                      <option value="Ventes B2B">Ventes B2B</option>
-                      <option value="Grands comptes">Grands comptes</option>
-                      <option value="PME">PME</option>
-                      <option value="Direction">Direction</option>
-                      <option value="Non assigné">Non assigné</option>
-                    </select>
-                  </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-4 bg-muted/50 p-4 rounded-xl">
+                <div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">Rôle</div>
+                  <div className="font-medium mt-1">{roleLabel[selectedUser.role]}</div>
                 </div>
-                <DialogFooter className="px-6 py-4 bg-muted/20 border-t border-border/40">
-                  <Button variant="outline" onClick={() => setDialogType(null)}>Annuler</Button>
-                  <Button onClick={handleEditSave} className="gradient-brand text-white border-0">Enregistrer</Button>
-                </DialogFooter>
-              </>
-            )}
+                <div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Équipe
+                  </div>
+                  <div className="font-medium mt-1">{selectedUser.team || "—"}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Statut
+                  </div>
+                  <div className="font-medium mt-1">{statusLabel[selectedUser.status]}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                    Téléphone
+                  </div>
+                  <div className="font-medium mt-1">{selectedUser.phone || "—"}</div>
+                </div>
+                <div className="col-span-2">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                    E-mail vérifié
+                  </div>
+                  <div className="font-medium mt-1">{selectedUser.isVerified ? "Oui" : "Non"}</div>
+                </div>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       )}
+
+      {selectedUser && dialogType === "edit" && (
+        <EditUserDialog
+          user={selectedUser}
+          pending={updateUser.isPending}
+          onCancel={() => {
+            setDialogType(null);
+            setSelectedUser(null);
+          }}
+          onSave={handleEditSave}
+          teamOptions={teamOptions}
+        />
+      )}
+
+      <ConfirmDialog
+        open={confirm !== null}
+        state={confirm}
+        onOpenChange={(o) => !o && setConfirm(null)}
+      />
     </div>
   );
 }
 
-function StatCard({ icon: Icon, label, value, tone }: { icon: any; label: string; value: string; tone: string }) {
+function EditUserDialog({
+  user,
+  pending,
+  onCancel,
+  onSave,
+  teamOptions,
+}: {
+  user: UserDto;
+  pending: boolean;
+  onCancel: () => void;
+  onSave: (role: UserRole, team: string) => void;
+  teamOptions: string[];
+}) {
+  const [role, setRole] = useState<UserRole>(user.role);
+  const [team, setTeam] = useState(user.team ?? "");
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onCancel()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Modifier {user.fullName}</DialogTitle>
+        </DialogHeader>
+        <div className="py-4 space-y-4">
+          <div>
+            <Label>Rôle</Label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as UserRole)}
+              className="mt-2 w-full h-10 rounded-lg border border-input px-3 text-sm focus:border-ring outline-none bg-background"
+            >
+              <option value="commercial">Commercial</option>
+              <option value="manager">Manager</option>
+              <option value="admin">Administrateur</option>
+            </select>
+          </div>
+          <div>
+            <Label>Équipe</Label>
+            <Input
+              value={team}
+              onChange={(e) => setTeam(e.target.value)}
+              list="team-options"
+              placeholder="Ex : Ventes B2B"
+              className="mt-2"
+            />
+            <datalist id="team-options">
+              {teamOptions.map((t) => (
+                <option key={t} value={t} />
+              ))}
+            </datalist>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
+            Annuler
+          </Button>
+          <Button
+            onClick={() => onSave(role, team)}
+            disabled={pending}
+            className="gradient-brand text-white border-0"
+          >
+            {pending ? "Enregistrement…" : "Enregistrer"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  tone: string;
+}) {
   const tones: Record<string, string> = {
     brand: "bg-primary/10 text-primary",
     violet: "bg-violet-500/10 text-violet-600",

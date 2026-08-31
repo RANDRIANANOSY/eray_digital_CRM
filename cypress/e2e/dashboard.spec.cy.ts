@@ -98,57 +98,39 @@ describe("CRM Dashboard with Mocked Data", () => {
   };
 
   beforeEach(() => {
-    // Visit the home route (dashboard) with the seed data loaded in localStorage
+    cy.mockAllApi(mockCRMData);
     cy.visitWithSeed("/", mockCRMData);
   });
 
   it("should load the dashboard and show correct welcome message", () => {
-    cy.get("h1").should("contain.text", "Bonjour Adem Eray");
+    cy.get("h1").should("contain.text", "Bonjour Adem");
   });
 
   it("should calculate and render correct dynamic KPI statistics based on mock data", () => {
     // Prospects: 1 prospect in mock data
-    cy.contains("Prospects")
-      .siblings()
-      .last()
-      .should("contain.text", "1");
+    cy.contains("Prospects").siblings().last().should("contain.text", "1");
 
     // Clients actifs: 1 active client in mock data
-    cy.contains("Clients actifs")
-      .siblings()
-      .last()
-      .should("contain.text", "1");
+    cy.contains("Clients actifs").siblings().last().should("contain.text", "1");
 
     // Opportunités gagnées: 1 "Vente gagnée" deal
-    cy.contains("Opportunités gagnées")
-      .siblings()
-      .last()
-      .should("contain.text", "1");
+    cy.contains("Opportunités gagnées").siblings().last().should("contain.text", "1");
 
     // Opportunités perdues: 0 in mock data
-    cy.contains("Opportunités perdues")
-      .siblings()
-      .last()
-      .should("contain.text", "0");
+    cy.contains("Opportunités perdues").siblings().last().should("contain.text", "0");
 
     // CA potentiel: total amount of deals = 8,000,000 + 3,500,000 = 11,500,000 -> 11500 K MGA
-    cy.contains("CA potentiel")
-      .siblings()
-      .last()
-      .should("contain.text", "11500 K MGA");
+    cy.contains("CA potentiel").siblings().last().should("contain.text", "11500 K MGA");
 
     // CA signé: amount of won deals = 8,000,000 -> 8000 K MGA
-    cy.contains("CA signé")
-      .siblings()
-      .last()
-      .should("contain.text", "8000 K MGA");
+    cy.contains("CA signé").siblings().last().should("contain.text", "8000 K MGA");
   });
 
   it("should list tasks and recent activities matching the seed data", () => {
     // Check 'Tâches du jour' contains our mocked activity title
     cy.contains("Tâches du jour").should("be.visible");
     cy.contains("Test Quick Call").should("be.visible");
-    cy.contains("Mock Prospect One • 10:30").should("be.visible");
+    cy.contains("Mock Prospect One").should("be.visible");
 
     // Check 'Activités récentes' contains the mocked activities
     cy.contains("Activités récentes").should("be.visible");

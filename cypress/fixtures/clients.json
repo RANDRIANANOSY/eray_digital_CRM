@@ -1,0 +1,55 @@
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "name": "Mock Prospect One",
+        "company": "Alpha Tech",
+        "role": "CTO",
+        "email": "alpha@test.com",
+        "phone": "+261340000001",
+        "city": "Antananarivo",
+        "sector": "Tech",
+        "ownerId": 1,
+        "ownerName": "Antoine Roy",
+        "status": "prospect",
+        "priority": "high",
+        "tags": ["Test", "Lead"],
+        "value": 150000,
+        "lastContactAt": "2026-08-10",
+        "initials": "MP",
+        "createdAt": "2026-01-15T10:00:00Z",
+        "updatedAt": "2026-08-10T10:00:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Mock Client Two",
+        "company": "Beta Services",
+        "role": "CEO",
+        "email": "beta@test.com",
+        "phone": "+261340000002",
+        "city": "Antsirabe",
+        "sector": "Finance",
+        "ownerId": 2,
+        "ownerName": "Léa Martin",
+        "status": "actif",
+        "priority": "medium",
+        "tags": ["VIP"],
+        "value": 450000,
+        "lastContactAt": "2026-08-09",
+        "initials": "MC",
+        "createdAt": "2026-02-10T10:00:00Z",
+        "updatedAt": "2026-08-09T10:00:00Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "perPage": 20,
+      "total": 2,
+      "totalPages": 1
+    }
+  },
+  "message": null,
+  "errors": []
+}

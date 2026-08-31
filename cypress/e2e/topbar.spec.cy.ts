@@ -11,15 +11,17 @@ describe("App Topbar and Quick Create Dialogs", () => {
   };
 
   beforeEach(() => {
+    cy.mockAllApi(mockCRMData);
+
     cy.visitWithSeed("/", mockCRMData, {
       token: "admin-cypress-token",
       role: "admin",
-      name: "Antoine Roy",
+      name: "Adem Eray",
     });
   });
 
   it("should render topbar elements, including user info, notifications, and companies", () => {
-    cy.contains("Antoine Roy").should("be.visible");
+    cy.contains("Adem Eray").should("be.visible");
     cy.contains("Administrateur").should("be.visible");
     cy.get('img[alt="Eray Logo"]').should("be.visible");
   });
@@ -85,16 +87,16 @@ describe("App Topbar and Quick Create Dialogs", () => {
   });
 
   it("should allow logout from avatar dropdown menu", () => {
-    cy.contains("Antoine Roy").click();
+    cy.contains("Adem Eray").click();
     cy.contains("Se déconnecter").click();
-    
+
     // Check redirect to login screen
     cy.url().should("include", "/login");
-    
+
     // Check tokens cleared
     cy.window().then((win) => {
-      expect(win.localStorage.getItem("token")).to.be.null;
-      expect(win.sessionStorage.getItem("token")).to.be.null;
+      expect(win.localStorage.getItem("token")).to.equal(null);
+      expect(win.sessionStorage.getItem("token")).to.equal(null);
     });
   });
 });

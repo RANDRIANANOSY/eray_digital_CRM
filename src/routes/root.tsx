@@ -1,20 +1,34 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet, useRouteError } from "react-router";
-import { CRMProvider } from "@/lib/store";
-import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
+import { ApiError } from "@/lib/api";
+import { clearSession, getToken } from "@/lib/api/auth-storage";
 
-const queryClient = new QueryClient();
+// A 401 while we DO hold a token means it expired/was revoked server-side —
+// force a clean re-login. A 401 with no token (e.g. a failed login attempt
+// itself) is left for the calling screen to handle inline.
+function handleExpiredSession(error: unknown) {
+  if (
+    error instanceof ApiError &&
+    error.status === 401 &&
+    getToken() !== null &&
+    window.location.pathname !== "/login"
+  ) {
+    clearSession();
+    window.location.assign("/login?expired=1");
+  }
+}
+
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: handleExpiredSession }),
+  mutationCache: new MutationCache({ onError: handleExpiredSession }),
+});
 
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CRMProvider>
-          <Outlet />
-          <Toaster />
-        </CRMProvider>
-      </AuthProvider>
+      <Outlet />
+      <Toaster />
     </QueryClientProvider>
   );
 }

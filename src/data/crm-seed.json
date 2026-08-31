@@ -191,120 +191,758 @@
     { "label": "Taux de conversion", "value": "34%", "delta": "+3 pts", "tone": "violet" }
   ],
   "clientEvents": [
-    { "id": "h1", "channel": "call", "title": "Appel de qualification", "client": "Sophie Laurent", "owner": "Yanis Moreau", "date": "07/07/2026", "time": "09:30", "direction": "past", "summary": "Besoins Q3 clarifiés, budget confirmé." },
-    { "id": "h2", "channel": "whatsapp", "title": "Discussion WhatsApp — logistique RDV", "client": "Sophie Laurent", "owner": "Yanis Moreau", "date": "07/07/2026", "time": "17:12", "direction": "past", "summary": "Confirmation présence Marc à la démo." },
-    { "id": "h3", "channel": "email", "title": "Envoi du cahier des charges", "client": "Sophie Laurent", "owner": "Yanis Moreau", "date": "06/07/2026", "time": "11:20", "direction": "past" },
-    { "id": "h4", "channel": "meeting", "title": "Présentation maquette v1", "client": "Sophie Laurent", "owner": "Yanis Moreau", "date": "12/07/2026", "time": "14:00", "direction": "upcoming", "summary": "Présenter la maquette Figma finale." },
-    { "id": "h5", "channel": "email", "title": "Envoyer proposition commerciale", "client": "Sophie Laurent", "owner": "Yanis Moreau", "date": "15/07/2026", "time": "09:30", "direction": "upcoming" },
-    { "id": "h6", "channel": "call", "title": "Relance signature contrat", "client": "Marc Dubois", "owner": "Claire Dubois", "date": "05/07/2026", "time": "10:00", "direction": "past" },
-    { "id": "h7", "channel": "meeting", "title": "Démo produit — module Pipeline", "client": "Marc Dubois", "owner": "Claire Dubois", "date": "09/07/2026", "time": "11:00", "direction": "upcoming" },
-    { "id": "h8", "channel": "whatsapp", "title": "Échange WhatsApp — prix option Enterprise", "client": "Marc Dubois", "owner": "Claire Dubois", "date": "04/07/2026", "time": "18:45", "direction": "past" },
-    { "id": "h9", "channel": "email", "title": "Envoi devis renouvellement", "client": "Elena Rossi", "owner": "Claire Dubois", "date": "06/07/2026", "time": "10:15", "direction": "past" },
-    { "id": "h10", "channel": "call", "title": "Prochain appel de suivi", "client": "Elena Rossi", "owner": "Claire Dubois", "date": "14/07/2026", "time": "15:00", "direction": "upcoming" },
-    { "id": "h11", "channel": "call", "title": "Appel de découverte besoins", "client": "Julien Perrin", "owner": "test test", "date": "08/07/2026", "time": "10:00", "direction": "past", "summary": "GreenTech veut migrer son CRM." },
-    { "id": "h12", "channel": "email", "title": "Envoi brochure tarifaire", "client": "Julien Perrin", "owner": "test test", "date": "07/07/2026", "time": "14:30", "direction": "past" },
-    { "id": "h13", "channel": "meeting", "title": "RDV découverte Nuvem SaaS", "client": "Inès Dupuis", "owner": "test test", "date": "10/07/2026", "time": "11:00", "direction": "upcoming", "summary": "Démonstration produit complète." },
-    { "id": "h14", "channel": "whatsapp", "title": "Relance Thomas Noël", "client": "Thomas Noël", "owner": "test test", "date": "09/07/2026", "time": "09:15", "direction": "past" }
+    {
+      "id": "h1",
+      "channel": "call",
+      "title": "Appel de qualification",
+      "client": "Sophie Laurent",
+      "owner": "Yanis Moreau",
+      "date": "07/07/2026",
+      "time": "09:30",
+      "direction": "past",
+      "summary": "Besoins Q3 clarifiés, budget confirmé."
+    },
+    {
+      "id": "h2",
+      "channel": "whatsapp",
+      "title": "Discussion WhatsApp — logistique RDV",
+      "client": "Sophie Laurent",
+      "owner": "Yanis Moreau",
+      "date": "07/07/2026",
+      "time": "17:12",
+      "direction": "past",
+      "summary": "Confirmation présence Marc à la démo."
+    },
+    {
+      "id": "h3",
+      "channel": "email",
+      "title": "Envoi du cahier des charges",
+      "client": "Sophie Laurent",
+      "owner": "Yanis Moreau",
+      "date": "06/07/2026",
+      "time": "11:20",
+      "direction": "past"
+    },
+    {
+      "id": "h4",
+      "channel": "meeting",
+      "title": "Présentation maquette v1",
+      "client": "Sophie Laurent",
+      "owner": "Yanis Moreau",
+      "date": "12/07/2026",
+      "time": "14:00",
+      "direction": "upcoming",
+      "summary": "Présenter la maquette Figma finale."
+    },
+    {
+      "id": "h5",
+      "channel": "email",
+      "title": "Envoyer proposition commerciale",
+      "client": "Sophie Laurent",
+      "owner": "Yanis Moreau",
+      "date": "15/07/2026",
+      "time": "09:30",
+      "direction": "upcoming"
+    },
+    {
+      "id": "h6",
+      "channel": "call",
+      "title": "Relance signature contrat",
+      "client": "Marc Dubois",
+      "owner": "Claire Dubois",
+      "date": "05/07/2026",
+      "time": "10:00",
+      "direction": "past"
+    },
+    {
+      "id": "h7",
+      "channel": "meeting",
+      "title": "Démo produit — module Pipeline",
+      "client": "Marc Dubois",
+      "owner": "Claire Dubois",
+      "date": "09/07/2026",
+      "time": "11:00",
+      "direction": "upcoming"
+    },
+    {
+      "id": "h8",
+      "channel": "whatsapp",
+      "title": "Échange WhatsApp — prix option Enterprise",
+      "client": "Marc Dubois",
+      "owner": "Claire Dubois",
+      "date": "04/07/2026",
+      "time": "18:45",
+      "direction": "past"
+    },
+    {
+      "id": "h9",
+      "channel": "email",
+      "title": "Envoi devis renouvellement",
+      "client": "Elena Rossi",
+      "owner": "Claire Dubois",
+      "date": "06/07/2026",
+      "time": "10:15",
+      "direction": "past"
+    },
+    {
+      "id": "h10",
+      "channel": "call",
+      "title": "Prochain appel de suivi",
+      "client": "Elena Rossi",
+      "owner": "Claire Dubois",
+      "date": "14/07/2026",
+      "time": "15:00",
+      "direction": "upcoming"
+    },
+    {
+      "id": "h11",
+      "channel": "call",
+      "title": "Appel de découverte besoins",
+      "client": "Julien Perrin",
+      "owner": "test test",
+      "date": "08/07/2026",
+      "time": "10:00",
+      "direction": "past",
+      "summary": "GreenTech veut migrer son CRM."
+    },
+    {
+      "id": "h12",
+      "channel": "email",
+      "title": "Envoi brochure tarifaire",
+      "client": "Julien Perrin",
+      "owner": "test test",
+      "date": "07/07/2026",
+      "time": "14:30",
+      "direction": "past"
+    },
+    {
+      "id": "h13",
+      "channel": "meeting",
+      "title": "RDV découverte Nuvem SaaS",
+      "client": "Inès Dupuis",
+      "owner": "test test",
+      "date": "10/07/2026",
+      "time": "11:00",
+      "direction": "upcoming",
+      "summary": "Démonstration produit complète."
+    },
+    {
+      "id": "h14",
+      "channel": "whatsapp",
+      "title": "Relance Thomas Noël",
+      "client": "Thomas Noël",
+      "owner": "test test",
+      "date": "09/07/2026",
+      "time": "09:15",
+      "direction": "past"
+    }
   ],
   "activities": [
-    { "id": "a1", "type": "call", "title": "Appel de qualification", "client": "Sophie Laurent", "owner": "Yanis Moreau", "date": "Aujourd'hui", "time": "09:30", "duration": "1 heure", "status": "terminé", "priority": "high", "summary": "Discussion des besoins Q3", "result": "Intéressée par l'offre Premium" },
-    { "id": "a2", "type": "meeting", "title": "Rendez-vous démo produit", "client": "Marc Dubois", "owner": "Claire Dubois", "date": "Aujourd'hui", "time": "11:00", "duration": "1h30", "status": "planifié", "priority": "high", "summary": "Présentation module Pipeline" },
-    { "id": "a3", "type": "email", "title": "Envoi proposition commerciale", "client": "Aya Benali", "owner": "Yanis Moreau", "date": "Aujourd'hui", "time": "14:20", "status": "à faire", "priority": "medium" },
-    { "id": "a4", "type": "follow-up", "title": "Relance devis n°2043", "client": "Julien Perrin", "owner": "test test", "date": "2026-07-07", "time": "10:00", "duration": "1 heure", "status": "en retard", "priority": "high" },
-    { "id": "a5", "type": "quote", "title": "Envoi devis renouvellement", "client": "Elena Rossi", "owner": "Claire Dubois", "date": "Hier", "time": "10:15", "status": "terminé", "priority": "medium", "result": "En attente de validation" },
-    { "id": "a6", "type": "note", "title": "Compte-rendu réunion stratégique", "client": "Sophie Laurent", "owner": "Yanis Moreau", "date": "Il y a 2 j", "time": "18:30", "status": "terminé", "priority": "low" },
-    { "id": "a7", "type": "task", "title": "Préparer contrat annuel", "client": "Marc Dubois", "owner": "Claire Dubois", "date": "Demain", "time": "09:00", "status": "à faire", "priority": "high" },
-    { "id": "a8", "type": "visit", "title": "Visite site client", "client": "Thomas Noël", "owner": "test test", "date": "2026-07-10", "time": "10:00", "duration": "1 heure", "status": "planifié", "priority": "medium" },
-    { "id": "a9", "type": "meeting", "title": "Rendez-vous stratégique", "client": "Sophie Laurent", "owner": "Yanis Moreau", "date": "2026-07-07", "time": "14:00", "duration": "2 heures", "status": "planifié", "priority": "high" },
-    { "id": "a10", "type": "task", "title": "Standup équipe", "client": "Interne", "owner": "Yanis Moreau", "date": "2026-07-08", "time": "09:00", "duration": "30 min", "status": "planifié", "priority": "low" },
-    { "id": "a11", "type": "meeting", "title": "Café découverte", "client": "Aya Benali", "owner": "Yanis Moreau", "date": "2026-07-08", "time": "15:30", "duration": "1 heure", "status": "planifié", "priority": "medium" },
-    { "id": "a12", "type": "call", "title": "Appel Julien Perrin", "client": "Julien Perrin", "owner": "test test", "date": "2026-07-09", "time": "11:00", "duration": "1 heure", "status": "planifié", "priority": "medium" },
-    { "id": "a13", "type": "meeting", "title": "Négociation contrat", "client": "Marc Dubois", "owner": "Claire Dubois", "date": "2026-07-09", "time": "16:00", "duration": "1h30", "status": "planifié", "priority": "high" },
-    { "id": "a14", "type": "follow-up", "title": "Relance Elena Rossi", "client": "Elena Rossi", "owner": "Claire Dubois", "date": "2026-07-10", "time": "14:00", "duration": "30 min", "status": "planifié", "priority": "medium" },
-    { "id": "a15", "type": "meeting", "title": "Démonstration Nuvem SaaS", "client": "Inès Dupuis", "owner": "test test", "date": "2026-07-10", "time": "11:00", "duration": "1h30", "status": "planifié", "priority": "high", "summary": "Présentation de la solution CRM complète" },
-    { "id": "a16", "type": "call", "title": "Appel relance Thomas Noël", "client": "Thomas Noël", "owner": "test test", "date": "2026-07-11", "time": "10:00", "status": "à faire", "priority": "medium" },
-    { "id": "a17", "type": "email", "title": "Envoi proposition Vertex Data", "client": "Rachid Benyoub", "owner": "Yanis Moreau", "date": "Demain", "time": "09:00", "status": "à faire", "priority": "high" }
+    {
+      "id": "a1",
+      "type": "call",
+      "title": "Appel de qualification",
+      "client": "Sophie Laurent",
+      "owner": "Yanis Moreau",
+      "date": "Aujourd'hui",
+      "time": "09:30",
+      "duration": "1 heure",
+      "status": "terminé",
+      "priority": "high",
+      "summary": "Discussion des besoins Q3",
+      "result": "Intéressée par l'offre Premium"
+    },
+    {
+      "id": "a2",
+      "type": "meeting",
+      "title": "Rendez-vous démo produit",
+      "client": "Marc Dubois",
+      "owner": "Claire Dubois",
+      "date": "Aujourd'hui",
+      "time": "11:00",
+      "duration": "1h30",
+      "status": "planifié",
+      "priority": "high",
+      "summary": "Présentation module Pipeline"
+    },
+    {
+      "id": "a3",
+      "type": "email",
+      "title": "Envoi proposition commerciale",
+      "client": "Aya Benali",
+      "owner": "Yanis Moreau",
+      "date": "Aujourd'hui",
+      "time": "14:20",
+      "status": "à faire",
+      "priority": "medium"
+    },
+    {
+      "id": "a4",
+      "type": "follow-up",
+      "title": "Relance devis n°2043",
+      "client": "Julien Perrin",
+      "owner": "test test",
+      "date": "2026-07-07",
+      "time": "10:00",
+      "duration": "1 heure",
+      "status": "en retard",
+      "priority": "high"
+    },
+    {
+      "id": "a5",
+      "type": "quote",
+      "title": "Envoi devis renouvellement",
+      "client": "Elena Rossi",
+      "owner": "Claire Dubois",
+      "date": "Hier",
+      "time": "10:15",
+      "status": "terminé",
+      "priority": "medium",
+      "result": "En attente de validation"
+    },
+    {
+      "id": "a6",
+      "type": "note",
+      "title": "Compte-rendu réunion stratégique",
+      "client": "Sophie Laurent",
+      "owner": "Yanis Moreau",
+      "date": "Il y a 2 j",
+      "time": "18:30",
+      "status": "terminé",
+      "priority": "low"
+    },
+    {
+      "id": "a7",
+      "type": "task",
+      "title": "Préparer contrat annuel",
+      "client": "Marc Dubois",
+      "owner": "Claire Dubois",
+      "date": "Demain",
+      "time": "09:00",
+      "status": "à faire",
+      "priority": "high"
+    },
+    {
+      "id": "a8",
+      "type": "visit",
+      "title": "Visite site client",
+      "client": "Thomas Noël",
+      "owner": "test test",
+      "date": "2026-07-10",
+      "time": "10:00",
+      "duration": "1 heure",
+      "status": "planifié",
+      "priority": "medium"
+    },
+    {
+      "id": "a9",
+      "type": "meeting",
+      "title": "Rendez-vous stratégique",
+      "client": "Sophie Laurent",
+      "owner": "Yanis Moreau",
+      "date": "2026-07-07",
+      "time": "14:00",
+      "duration": "2 heures",
+      "status": "planifié",
+      "priority": "high"
+    },
+    {
+      "id": "a10",
+      "type": "task",
+      "title": "Standup équipe",
+      "client": "Interne",
+      "owner": "Yanis Moreau",
+      "date": "2026-07-08",
+      "time": "09:00",
+      "duration": "30 min",
+      "status": "planifié",
+      "priority": "low"
+    },
+    {
+      "id": "a11",
+      "type": "meeting",
+      "title": "Café découverte",
+      "client": "Aya Benali",
+      "owner": "Yanis Moreau",
+      "date": "2026-07-08",
+      "time": "15:30",
+      "duration": "1 heure",
+      "status": "planifié",
+      "priority": "medium"
+    },
+    {
+      "id": "a12",
+      "type": "call",
+      "title": "Appel Julien Perrin",
+      "client": "Julien Perrin",
+      "owner": "test test",
+      "date": "2026-07-09",
+      "time": "11:00",
+      "duration": "1 heure",
+      "status": "planifié",
+      "priority": "medium"
+    },
+    {
+      "id": "a13",
+      "type": "meeting",
+      "title": "Négociation contrat",
+      "client": "Marc Dubois",
+      "owner": "Claire Dubois",
+      "date": "2026-07-09",
+      "time": "16:00",
+      "duration": "1h30",
+      "status": "planifié",
+      "priority": "high"
+    },
+    {
+      "id": "a14",
+      "type": "follow-up",
+      "title": "Relance Elena Rossi",
+      "client": "Elena Rossi",
+      "owner": "Claire Dubois",
+      "date": "2026-07-10",
+      "time": "14:00",
+      "duration": "30 min",
+      "status": "planifié",
+      "priority": "medium"
+    },
+    {
+      "id": "a15",
+      "type": "meeting",
+      "title": "Démonstration Nuvem SaaS",
+      "client": "Inès Dupuis",
+      "owner": "test test",
+      "date": "2026-07-10",
+      "time": "11:00",
+      "duration": "1h30",
+      "status": "planifié",
+      "priority": "high",
+      "summary": "Présentation de la solution CRM complète"
+    },
+    {
+      "id": "a16",
+      "type": "call",
+      "title": "Appel relance Thomas Noël",
+      "client": "Thomas Noël",
+      "owner": "test test",
+      "date": "2026-07-11",
+      "time": "10:00",
+      "status": "à faire",
+      "priority": "medium"
+    },
+    {
+      "id": "a17",
+      "type": "email",
+      "title": "Envoi proposition Vertex Data",
+      "client": "Rachid Benyoub",
+      "owner": "Yanis Moreau",
+      "date": "Demain",
+      "time": "09:00",
+      "status": "à faire",
+      "priority": "high"
+    }
   ],
   "deals": [
-    { "id": "d1", "client": "Sophie Laurent", "company": "Atelier Nord", "amount": 82500, "probability": 80, "owner": "Yanis Moreau", "lastActivity": "Appel il y a 2 h", "nextAction": "Envoyer contrat", "closeDate": "15 juil.", "stage": "Négociation" },
-    { "id": "d2", "client": "Marc Dubois", "company": "Logipro Industries", "amount": 120000, "probability": 65, "owner": "Claire Dubois", "lastActivity": "Démo aujourd'hui", "nextAction": "Préparer proposition", "closeDate": "28 juil.", "stage": "Devis envoyé" },
-    { "id": "d3", "client": "Aya Benali", "company": "Studio Kova", "amount": 18500, "probability": 40, "owner": "Yanis Moreau", "lastActivity": "Email il y a 3 j", "nextAction": "Relancer", "closeDate": "10 août", "stage": "Qualification" },
-    { "id": "d4", "client": "Julien Perrin", "company": "GreenTech Solutions", "amount": 46200, "probability": 55, "owner": "test test", "lastActivity": "Devis envoyé", "nextAction": "Relance", "closeDate": "22 juil.", "stage": "Premier contact" },
-    { "id": "d5", "client": "Elena Rossi", "company": "Maison Verre", "amount": 9800, "probability": 25, "owner": "Claire Dubois", "lastActivity": "Découverte", "nextAction": "Planifier RDV", "closeDate": "5 août", "stage": "Nouveau lead" },
-    { "id": "d6", "client": "Thomas Noël", "company": "Noël & Associés", "amount": 24000, "probability": 10, "owner": "test test", "lastActivity": "Silence radio", "nextAction": "Réactiver", "closeDate": "—", "stage": "Relance 2" },
-    { "id": "d7", "client": "Nadia Hakim", "company": "Onyx Studio", "amount": 36000, "probability": 100, "owner": "Yanis Moreau", "lastActivity": "Contrat signé", "nextAction": "Kick-off", "closeDate": "01 juil.", "stage": "Vente gagnée" },
-    { "id": "d8", "client": "Hugo Marchand", "company": "Marchand & Fils", "amount": 54000, "probability": 45, "owner": "Claire Dubois", "lastActivity": "RDV confirmé", "nextAction": "Préparer démo", "closeDate": "18 juil.", "stage": "Rendez-vous planifié" },
-    { "id": "d9", "client": "Inès Dupuis", "company": "Nuvem SaaS", "amount": 68000, "probability": 50, "owner": "test test", "lastActivity": "Atelier découverte", "nextAction": "Cadrer besoins", "closeDate": "25 juil.", "stage": "Analyse des besoins" },
-    { "id": "d10", "client": "Rachid Benyoub", "company": "Vertex Data", "amount": 91000, "probability": 60, "owner": "Yanis Moreau", "lastActivity": "Démo hier", "nextAction": "Envoyer devis", "closeDate": "30 juil.", "stage": "Démonstration" }
+    {
+      "id": "d1",
+      "client": "Sophie Laurent",
+      "company": "Atelier Nord",
+      "amount": 82500,
+      "probability": 80,
+      "owner": "Yanis Moreau",
+      "lastActivity": "Appel il y a 2 h",
+      "nextAction": "Envoyer contrat",
+      "closeDate": "15 juil.",
+      "stage": "Négociation"
+    },
+    {
+      "id": "d2",
+      "client": "Marc Dubois",
+      "company": "Logipro Industries",
+      "amount": 120000,
+      "probability": 65,
+      "owner": "Claire Dubois",
+      "lastActivity": "Démo aujourd'hui",
+      "nextAction": "Préparer proposition",
+      "closeDate": "28 juil.",
+      "stage": "Devis envoyé"
+    },
+    {
+      "id": "d3",
+      "client": "Aya Benali",
+      "company": "Studio Kova",
+      "amount": 18500,
+      "probability": 40,
+      "owner": "Yanis Moreau",
+      "lastActivity": "Email il y a 3 j",
+      "nextAction": "Relancer",
+      "closeDate": "10 août",
+      "stage": "Qualification"
+    },
+    {
+      "id": "d4",
+      "client": "Julien Perrin",
+      "company": "GreenTech Solutions",
+      "amount": 46200,
+      "probability": 55,
+      "owner": "test test",
+      "lastActivity": "Devis envoyé",
+      "nextAction": "Relance",
+      "closeDate": "22 juil.",
+      "stage": "Premier contact"
+    },
+    {
+      "id": "d5",
+      "client": "Elena Rossi",
+      "company": "Maison Verre",
+      "amount": 9800,
+      "probability": 25,
+      "owner": "Claire Dubois",
+      "lastActivity": "Découverte",
+      "nextAction": "Planifier RDV",
+      "closeDate": "5 août",
+      "stage": "Nouveau lead"
+    },
+    {
+      "id": "d6",
+      "client": "Thomas Noël",
+      "company": "Noël & Associés",
+      "amount": 24000,
+      "probability": 10,
+      "owner": "test test",
+      "lastActivity": "Silence radio",
+      "nextAction": "Réactiver",
+      "closeDate": "—",
+      "stage": "Relance 2"
+    },
+    {
+      "id": "d7",
+      "client": "Nadia Hakim",
+      "company": "Onyx Studio",
+      "amount": 36000,
+      "probability": 100,
+      "owner": "Yanis Moreau",
+      "lastActivity": "Contrat signé",
+      "nextAction": "Kick-off",
+      "closeDate": "01 juil.",
+      "stage": "Vente gagnée"
+    },
+    {
+      "id": "d8",
+      "client": "Hugo Marchand",
+      "company": "Marchand & Fils",
+      "amount": 54000,
+      "probability": 45,
+      "owner": "Claire Dubois",
+      "lastActivity": "RDV confirmé",
+      "nextAction": "Préparer démo",
+      "closeDate": "18 juil.",
+      "stage": "Rendez-vous planifié"
+    },
+    {
+      "id": "d9",
+      "client": "Inès Dupuis",
+      "company": "Nuvem SaaS",
+      "amount": 68000,
+      "probability": 50,
+      "owner": "test test",
+      "lastActivity": "Atelier découverte",
+      "nextAction": "Cadrer besoins",
+      "closeDate": "25 juil.",
+      "stage": "Analyse des besoins"
+    },
+    {
+      "id": "d10",
+      "client": "Rachid Benyoub",
+      "company": "Vertex Data",
+      "amount": 91000,
+      "probability": 60,
+      "owner": "Yanis Moreau",
+      "lastActivity": "Démo hier",
+      "nextAction": "Envoyer devis",
+      "closeDate": "30 juil.",
+      "stage": "Démonstration"
+    }
   ],
   "projects": [
     {
-      "id": "p1", "name": "Refonte plateforme e-commerce", "client": "Atelier Nord", "owner": "Yanis Moreau", "start": "01/06/2025", "end": "30/09/2025", "progress": 75, "status": "En cours",
+      "id": "p1",
+      "name": "Refonte plateforme e-commerce",
+      "client": "Atelier Nord",
+      "owner": "Yanis Moreau",
+      "start": "01/06/2025",
+      "end": "30/09/2025",
+      "progress": 75,
+      "status": "En cours",
       "team": ["YM", "CD"],
       "tasks": [
-        { "id": "p1t1", "label": "Cadrage UX", "status": "Terminé", "assignee": "YM", "due": "10/06/2025" },
-        { "id": "p1t2", "label": "Maquettes Figma", "status": "En cours", "assignee": "CD", "due": "20/07/2026" },
-        { "id": "p1t3", "label": "Intégration front", "status": "À faire", "assignee": "YM", "due": "05/08/2026" }
+        {
+          "id": "p1t1",
+          "label": "Cadrage UX",
+          "status": "Terminé",
+          "assignee": "YM",
+          "due": "10/06/2025"
+        },
+        {
+          "id": "p1t2",
+          "label": "Maquettes Figma",
+          "status": "En cours",
+          "assignee": "CD",
+          "due": "20/07/2026"
+        },
+        {
+          "id": "p1t3",
+          "label": "Intégration front",
+          "status": "À faire",
+          "assignee": "YM",
+          "due": "05/08/2026"
+        }
       ]
     },
     {
-      "id": "p1b", "name": "Programme fidélité Atelier Nord", "client": "Atelier Nord", "owner": "Yanis Moreau", "start": "15/07/2026", "end": "15/11/2026", "progress": 10, "status": "En attente",
+      "id": "p1b",
+      "name": "Programme fidélité Atelier Nord",
+      "client": "Atelier Nord",
+      "owner": "Yanis Moreau",
+      "start": "15/07/2026",
+      "end": "15/11/2026",
+      "progress": 10,
+      "status": "En attente",
       "team": ["YM"],
       "tasks": [
-        { "id": "p1bt1", "label": "Benchmark concurrents", "status": "En cours", "assignee": "YM", "due": "22/07/2026" },
-        { "id": "p1bt2", "label": "Atelier stratégie", "status": "À faire", "assignee": "YM", "due": "01/08/2026" }
+        {
+          "id": "p1bt1",
+          "label": "Benchmark concurrents",
+          "status": "En cours",
+          "assignee": "YM",
+          "due": "22/07/2026"
+        },
+        {
+          "id": "p1bt2",
+          "label": "Atelier stratégie",
+          "status": "À faire",
+          "assignee": "YM",
+          "due": "01/08/2026"
+        }
       ]
     },
     {
-      "id": "p2", "name": "Déploiement CRM Logipro", "client": "Logipro Industries", "owner": "Claire Dubois", "start": "15/05/2025", "end": "15/08/2025", "progress": 50, "status": "En cours",
+      "id": "p2",
+      "name": "Déploiement CRM Logipro",
+      "client": "Logipro Industries",
+      "owner": "Claire Dubois",
+      "start": "15/05/2025",
+      "end": "15/08/2025",
+      "progress": 50,
+      "status": "En cours",
       "team": ["CD"],
       "tasks": [
-        { "id": "p2t1", "label": "Import données", "status": "Terminé", "assignee": "CD", "due": "01/06/2025" },
-        { "id": "p2t2", "label": "Formation utilisateurs", "status": "En cours", "assignee": "CD", "due": "18/07/2026" },
-        { "id": "p2t3", "label": "Recette", "status": "En retard", "assignee": "CD", "due": "02/07/2026" }
+        {
+          "id": "p2t1",
+          "label": "Import données",
+          "status": "Terminé",
+          "assignee": "CD",
+          "due": "01/06/2025"
+        },
+        {
+          "id": "p2t2",
+          "label": "Formation utilisateurs",
+          "status": "En cours",
+          "assignee": "CD",
+          "due": "18/07/2026"
+        },
+        {
+          "id": "p2t3",
+          "label": "Recette",
+          "status": "En retard",
+          "assignee": "CD",
+          "due": "02/07/2026"
+        }
       ]
     },
     {
-      "id": "p3", "name": "Audit branding Studio Kova", "client": "Studio Kova", "owner": "Yanis Moreau", "start": "20/06/2025", "end": "20/07/2025", "progress": 25, "status": "En attente",
+      "id": "p3",
+      "name": "Audit branding Studio Kova",
+      "client": "Studio Kova",
+      "owner": "Yanis Moreau",
+      "start": "20/06/2025",
+      "end": "20/07/2025",
+      "progress": 25,
+      "status": "En attente",
       "team": ["YM"],
       "tasks": [
-        { "id": "p3t1", "label": "Audit visuel", "status": "En cours", "assignee": "YM", "due": "12/07/2026" },
-        { "id": "p3t2", "label": "Recommandations", "status": "À faire", "assignee": "YM", "due": "19/07/2026" }
+        {
+          "id": "p3t1",
+          "label": "Audit visuel",
+          "status": "En cours",
+          "assignee": "YM",
+          "due": "12/07/2026"
+        },
+        {
+          "id": "p3t2",
+          "label": "Recommandations",
+          "status": "À faire",
+          "assignee": "YM",
+          "due": "19/07/2026"
+        }
       ]
     },
     {
-      "id": "p4", "name": "Migration CRM GreenTech", "client": "GreenTech Solutions", "owner": "test test", "start": "10/04/2025", "end": "10/07/2025", "progress": 60, "status": "En cours",
+      "id": "p4",
+      "name": "Migration CRM GreenTech",
+      "client": "GreenTech Solutions",
+      "owner": "test test",
+      "start": "10/04/2025",
+      "end": "10/07/2025",
+      "progress": 60,
+      "status": "En cours",
       "team": ["TT"],
       "tasks": [
-        { "id": "p4t1", "label": "Audit données existantes", "status": "Terminé", "assignee": "TT", "due": "20/06/2025" },
-        { "id": "p4t2", "label": "Migration prod", "status": "En cours", "assignee": "TT", "due": "05/07/2026" },
-        { "id": "p4t3", "label": "Documentation", "status": "À faire", "assignee": "TT", "due": "10/07/2026" }
+        {
+          "id": "p4t1",
+          "label": "Audit données existantes",
+          "status": "Terminé",
+          "assignee": "TT",
+          "due": "20/06/2025"
+        },
+        {
+          "id": "p4t2",
+          "label": "Migration prod",
+          "status": "En cours",
+          "assignee": "TT",
+          "due": "05/07/2026"
+        },
+        {
+          "id": "p4t3",
+          "label": "Documentation",
+          "status": "À faire",
+          "assignee": "TT",
+          "due": "10/07/2026"
+        }
       ]
     },
     {
-      "id": "p5", "name": "Formation équipes Maison Verre", "client": "Maison Verre", "owner": "Claire Dubois", "start": "01/07/2025", "end": "01/10/2025", "progress": 0, "status": "Suspendu",
+      "id": "p5",
+      "name": "Formation équipes Maison Verre",
+      "client": "Maison Verre",
+      "owner": "Claire Dubois",
+      "start": "01/07/2025",
+      "end": "01/10/2025",
+      "progress": 0,
+      "status": "Suspendu",
       "team": ["CD"],
       "tasks": [
-        { "id": "p5t1", "label": "Planifier sessions", "status": "À faire", "assignee": "CD", "due": "20/07/2026" }
+        {
+          "id": "p5t1",
+          "label": "Planifier sessions",
+          "status": "À faire",
+          "assignee": "CD",
+          "due": "20/07/2026"
+        }
       ]
     },
     {
-      "id": "p6", "name": "Intégration Nuvem SaaS", "client": "Nuvem SaaS", "owner": "test test", "start": "01/07/2026", "end": "01/11/2026", "progress": 15, "status": "En cours",
+      "id": "p6",
+      "name": "Intégration Nuvem SaaS",
+      "client": "Nuvem SaaS",
+      "owner": "test test",
+      "start": "01/07/2026",
+      "end": "01/11/2026",
+      "progress": 15,
+      "status": "En cours",
       "team": ["TT"],
       "tasks": [
-        { "id": "p6t1", "label": "Cadrage fonctionnel", "status": "Terminé", "assignee": "TT", "due": "15/07/2026" },
-        { "id": "p6t2", "label": "Configuration instance", "status": "En cours", "assignee": "TT", "due": "01/08/2026" },
-        { "id": "p6t3", "label": "Formation utilisateurs", "status": "À faire", "assignee": "TT", "due": "15/09/2026" }
+        {
+          "id": "p6t1",
+          "label": "Cadrage fonctionnel",
+          "status": "Terminé",
+          "assignee": "TT",
+          "due": "15/07/2026"
+        },
+        {
+          "id": "p6t2",
+          "label": "Configuration instance",
+          "status": "En cours",
+          "assignee": "TT",
+          "due": "01/08/2026"
+        },
+        {
+          "id": "p6t3",
+          "label": "Formation utilisateurs",
+          "status": "À faire",
+          "assignee": "TT",
+          "due": "15/09/2026"
+        }
       ]
     }
   ],
   "members": [
-    { "id": "u1", "name": "Adem Eray", "role": "Administrateur", "email": "admin@eray.com", "phone": "+33 6 12 45 78 90", "team": "Direction", "status": "Actif", "initials": "AE", "lastActive": "En ligne" },
-    { "id": "u2", "name": "Sarah Benali", "role": "Manager", "email": "sarah@eray.com", "phone": "+33 6 22 11 84 02", "team": "Direction", "status": "Actif", "initials": "SB", "lastActive": "il y a 5 min" },
-    { "id": "u3", "name": "Yanis Moreau", "role": "Commercial", "email": "yanis@eray.com", "phone": "+33 6 74 09 33 21", "team": "Ventes B2B", "status": "Actif", "initials": "YM", "lastActive": "il y a 1 h" },
-    { "id": "u4", "name": "Claire Dubois", "role": "Commercial", "email": "claire@eray.com", "phone": "+33 6 88 51 07 66", "team": "Ventes B2B", "status": "Actif", "initials": "CD", "lastActive": "il y a 30 min" },
-    { "id": "u5", "name": "Marc Lefevre", "role": "Commercial", "email": "marc@eray.com", "phone": "+33 6 31 78 24 15", "team": "PME", "status": "Désactivé", "initials": "ML", "lastActive": "—" },
-    { "id": "u6", "name": "test test", "role": "Commercial", "email": "test@gmail.com", "phone": "+33 6 00 00 00 00", "team": "Non assigné", "status": "Actif", "initials": "TT", "lastActive": "Jamais" }
+    {
+      "id": "u1",
+      "name": "Adem Eray",
+      "role": "Administrateur",
+      "email": "admin@eray.com",
+      "phone": "+33 6 12 45 78 90",
+      "team": "Direction",
+      "status": "Actif",
+      "initials": "AE",
+      "lastActive": "En ligne"
+    },
+    {
+      "id": "u2",
+      "name": "Sarah Benali",
+      "role": "Manager",
+      "email": "sarah@eray.com",
+      "phone": "+33 6 22 11 84 02",
+      "team": "Direction",
+      "status": "Actif",
+      "initials": "SB",
+      "lastActive": "il y a 5 min"
+    },
+    {
+      "id": "u3",
+      "name": "Yanis Moreau",
+      "role": "Commercial",
+      "email": "yanis@eray.com",
+      "phone": "+33 6 74 09 33 21",
+      "team": "Ventes B2B",
+      "status": "Actif",
+      "initials": "YM",
+      "lastActive": "il y a 1 h"
+    },
+    {
+      "id": "u4",
+      "name": "Claire Dubois",
+      "role": "Commercial",
+      "email": "claire@eray.com",
+      "phone": "+33 6 88 51 07 66",
+      "team": "Ventes B2B",
+      "status": "Actif",
+      "initials": "CD",
+      "lastActive": "il y a 30 min"
+    },
+    {
+      "id": "u5",
+      "name": "Marc Lefevre",
+      "role": "Commercial",
+      "email": "marc@eray.com",
+      "phone": "+33 6 31 78 24 15",
+      "team": "PME",
+      "status": "Désactivé",
+      "initials": "ML",
+      "lastActive": "—"
+    },
+    {
+      "id": "u6",
+      "name": "test test",
+      "role": "Commercial",
+      "email": "test@gmail.com",
+      "phone": "+33 6 00 00 00 00",
+      "team": "Non assigné",
+      "status": "Actif",
+      "initials": "TT",
+      "lastActive": "Jamais"
+    }
   ],
   "revenueSeries": [
     { "m": "Jan", "ca": 42, "po": 68 },

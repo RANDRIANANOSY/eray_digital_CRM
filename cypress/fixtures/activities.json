@@ -1,0 +1,51 @@
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "type": "call",
+        "title": "Appel de Qualification",
+        "clientId": 1,
+        "clientName": "Mock Prospect One",
+        "ownerId": 1,
+        "ownerName": "Antoine Roy",
+        "scheduledAt": "2026-08-19T10:30:00Z",
+        "durationMinutes": 60,
+        "status": "à faire",
+        "priority": "medium",
+        "summary": "Discussion about software integration",
+        "result": null,
+        "reminderAt": null,
+        "createdAt": "2026-08-19T08:00:00Z",
+        "updatedAt": "2026-08-19T08:00:00Z"
+      },
+      {
+        "id": 2,
+        "type": "email",
+        "title": "Envoi Devis Alpha",
+        "clientId": 1,
+        "clientName": "Mock Prospect One",
+        "ownerId": 1,
+        "ownerName": "Antoine Roy",
+        "scheduledAt": "2026-08-18T14:00:00Z",
+        "durationMinutes": null,
+        "status": "terminé",
+        "priority": "high",
+        "summary": "Sent proposal via mail",
+        "result": null,
+        "reminderAt": null,
+        "createdAt": "2026-08-18T09:00:00Z",
+        "updatedAt": "2026-08-18T14:00:00Z"
+      }
+    ],
+    "meta": {
+      "page": 1,
+      "perPage": 20,
+      "total": 2,
+      "totalPages": 1
+    }
+  },
+  "message": null,
+  "errors": []
+}

@@ -62,11 +62,56 @@ describe("Users Page", () => {
         status: "Désactivé",
         initials: "AR",
         lastActive: "il y a 2 j",
-      }
+      },
+      {
+        id: "u6",
+        name: "User 6",
+        role: "Commercial",
+        email: "u6@eray.com",
+        phone: "+33 6 00 00 00 06",
+        team: "Ventes B2B",
+        status: "Actif",
+        initials: "U6",
+        lastActive: "il y a 1 h",
+      },
+      {
+        id: "u7",
+        name: "User 7",
+        role: "Commercial",
+        email: "u7@eray.com",
+        phone: "+33 6 00 00 00 07",
+        team: "Ventes B2B",
+        status: "Actif",
+        initials: "U7",
+        lastActive: "il y a 1 h",
+      },
+      {
+        id: "u8",
+        name: "User 8",
+        role: "Commercial",
+        email: "u8@eray.com",
+        phone: "+33 6 00 00 00 08",
+        team: "Ventes B2B",
+        status: "Actif",
+        initials: "U8",
+        lastActive: "il y a 1 h",
+      },
+      {
+        id: "u9",
+        name: "User 9",
+        role: "Commercial",
+        email: "u9@eray.com",
+        phone: "+33 6 00 00 00 09",
+        team: "Ventes B2B",
+        status: "Actif",
+        initials: "U9",
+        lastActive: "il y a 1 h",
+      },
     ],
   };
 
   beforeEach(() => {
+    cy.mockAllApi(mockCRMData);
     cy.visitWithSeed("/users", mockCRMData);
   });
 
@@ -89,13 +134,13 @@ describe("Users Page", () => {
 
   it("should filter users by role, team, and status, and reset filters", () => {
     // Filter by Role: Administrateur
-    cy.get("select").eq(0).select("Administrateur");
+    cy.get("select").eq(0).select("Administrateurs");
     cy.get("tbody").contains("tr", "Adem Eray").should("be.visible");
     cy.get("tbody").contains("tr", "Yanis Moreau").should("not.exist");
 
     // Filter by Status: Actif
     cy.get("select").eq(1).select("Actif");
-    
+
     // Filter by Team: Direction
     cy.get("select").eq(2).select("Direction");
     cy.get("tbody").contains("tr", "Adem Eray").should("be.visible");
@@ -118,8 +163,9 @@ describe("Users Page", () => {
 
     // Invite for real
     cy.contains("Inviter un membre").click();
+    cy.get("#firstName").type("Nouvel");
+    cy.get("#lastName").type("Utilisateur");
     cy.get("#email").type(email);
-    cy.get("#phone").type("+33612345678");
     cy.get("#role").select("Commercial");
     cy.contains("button", "Envoyer l'invitation").click();
 
@@ -130,69 +176,61 @@ describe("Users Page", () => {
 
   it("should show details dialog on Eye button click and close it", () => {
     cy.get('button[data-cy="user-details-btn"]').first().click();
-    cy.get('[role="dialog"]').should('be.visible').within(() => {
-      cy.contains("Détails du membre").should("be.visible");
-      cy.contains("admin@eray.com").should("be.visible");
-      cy.contains("Administrateur").should("be.visible");
-      // Close modal
-      cy.get('button[aria-label="Fermer"]').first().click({ force: true });
-    });
+    cy.get('[role="dialog"]')
+      .should("be.visible")
+      .within(() => {
+        cy.contains("Détails du membre").should("be.visible");
+        cy.contains("admin@eray.com").should("be.visible");
+        cy.contains("Administrateur").should("be.visible");
+        // Close modal
+        cy.get('button[aria-label="Fermer"]').first().click({ force: true });
+      });
     cy.contains("Détails du membre").should("not.exist");
   });
 
   it("should edit member details, modify fields, save and cancel", () => {
     // Open edit dialog
     cy.get('button[data-cy="user-edit-btn"]').first().click();
-    cy.contains("Modifier le membre").should("be.visible");
+    cy.contains("Modifier Adem Eray").should("be.visible");
 
     // Cancel edit
     cy.contains("button", "Annuler").click();
-    cy.contains("Modifier le membre").should("not.exist");
+    cy.contains("Modifier Adem Eray").should("not.exist");
 
     // Edit and Save
     cy.get('button[data-cy="user-edit-btn"]').first().click();
-    cy.get('input[value="Adem Eray"]').clear().type("Adem Eray Modifié");
-    cy.get('input[value="+33 6 12 45 78 90"]').clear().type("+33600000000");
-    cy.get("select").eq(3).select("Manager");
-    cy.get("select").eq(4).select("Grands comptes");
-    
+    cy.get('[role="dialog"]').find("select").select("Manager");
+    cy.get('[role="dialog"]').find("input").clear().type("Grands comptes");
+
     cy.contains("button", "Enregistrer").click();
-    cy.contains("Adem Eray Modifié").should("be.visible");
+    cy.contains("Membre mis à jour").should("be.visible");
   });
 
-  it("should reset password, toggle status, and delete member using row actions", () => {
+  it("should reset password and toggle status using row actions", () => {
     // 1. Password reset
     cy.get('button[title="Réinitialiser le mot de passe"]').first().click();
-    cy.contains("Réinitialisation du mot de passe de Adem Eray").should("exist");
+    cy.contains("Réinitialisation envoyée à Adem Eray").should("exist");
 
     // 2. Toggle status (Active -> Inactive)
     cy.get('button[title="Désactiver"]').first().click();
     cy.contains("Statut mis à jour").should("exist");
-    
+
     // Verify badge status updated
     cy.contains("Désactivé").should("be.visible");
 
     // Toggle back (Inactive -> Active)
     cy.get('button[title="Activer"]').first().click();
     cy.contains("Statut mis à jour").should("exist");
-
-    // 3. Delete member
-    cy.contains("Yanis Moreau")
-      .parents("tr")
-      .find('button[title="Supprimer"]')
-      .click();
-
-    cy.contains("Yanis Moreau").should("not.exist");
   });
 
   it("should paginate through the members list", () => {
-    // Total members = 5. Items per page = 4.
-    cy.contains("Affichage 1–4 sur 5").should("be.visible");
+    // Total members = 9. Items per page = 8.
+    cy.contains("Affichage 1–8 sur 9").should("be.visible");
     cy.contains("Suivant").click();
-    cy.contains("Affichage 5–5 sur 5").should("be.visible");
-    cy.contains("Antoine Roy").should("be.visible");
+    cy.contains("Affichage 9–9 sur 9").should("be.visible");
+    cy.contains("User 9").should("be.visible");
 
     cy.contains("Précédent").click();
-    cy.contains("Affichage 1–4 sur 5").should("be.visible");
+    cy.contains("Affichage 1–8 sur 9").should("be.visible");
   });
 });

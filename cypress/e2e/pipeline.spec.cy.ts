@@ -36,6 +36,7 @@ describe("Pipeline Page", () => {
   };
 
   beforeEach(() => {
+    cy.mockAllApi(mockCRMData);
     cy.visitWithSeed("/pipeline", mockCRMData);
   });
 

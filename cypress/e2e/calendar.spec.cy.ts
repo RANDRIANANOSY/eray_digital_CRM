@@ -8,7 +8,7 @@ describe("Calendar Page", () => {
         name: "Mock Client One",
         company: "Company One",
         email: "one@test.com",
-      }
+      },
     ],
     activities: [
       {
@@ -49,7 +49,7 @@ describe("Calendar Page", () => {
         status: "planifié",
         priority: "low",
         summary: "Follow up call",
-      }
+      },
     ],
     deals: [],
     projects: [],
@@ -58,6 +58,7 @@ describe("Calendar Page", () => {
   };
 
   beforeEach(() => {
+    cy.mockAllApi(mockCRMData);
     cy.visitWithSeed("/calendar", mockCRMData);
   });
 
@@ -76,7 +77,7 @@ describe("Calendar Page", () => {
     // caractères avant de fixer l'assertion définitivement.
     cy.get("body").then(($body) => {
       cy.log("BODY TEXT DUMP", $body.text().slice(0, 2000));
-      // eslint-disable-next-line no-console
+
       console.log("FULL BODY TEXT:", $body.text());
     });
     // Si l'app a un conteneur identifiable pour les en-têtes de jours
@@ -100,11 +101,12 @@ describe("Calendar Page", () => {
     // Switch to Mois view
     cy.contains("button", "Mois").click();
     // Mois view shows the grid. July 6 has Appel de Qualification, July 7 has Réunion d'équipe
+    // Times are rendered in local time (UTC+3 → 10:30Z = 13:30, 14:00Z = 17:00)
     cy.get("div")
-      .contains(/10:30\s*Appel de Qualification/)
+      .contains(/13:30\s*Appel de Qualification/)
       .should("be.visible");
     cy.get("div")
-      .contains(/14:00\s*Réunion d'équipe/)
+      .contains(/17:00\s*Réunion d'équipe/)
       .should("be.visible");
 
     // Switch to Liste view
@@ -166,7 +168,8 @@ describe("Calendar Page", () => {
     // Popover details should appear
     cy.get(".font-display").contains("Appel de Qualification").should("be.visible");
     cy.contains("Mock Client One").should("be.visible");
-    cy.contains("10:30 – 11:30").should("be.visible");
+    // scheduledAt "2026-07-06T10:30:00Z" is rendered in local time (UTC+3 → 13:30)
+    cy.contains("13:30 – 14:30").should("be.visible");
 
     // Click 'Voir la fiche' action button
     cy.contains("Voir la fiche").click();
@@ -191,13 +194,30 @@ describe("Calendar Page", () => {
     cy.get('input[name="title"]').type("Tâche Cypress Test");
     cy.get('input[name="client"]').type("Mock Client One");
     cy.get('select[name="duration"]').select("30 min");
-    cy.get('input[name="date"]').type("2026-07-09");
-    cy.get('input[name="time"]').type("11:00");
+    cy.get('input[name="date"]').then(($el) => {
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )!.set!;
+      nativeSetter.call($el[0], "2026-07-09");
+      $el[0].dispatchEvent(new Event("input", { bubbles: true }));
+      $el[0].dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    cy.get('input[name="time"]').then(($el) => {
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )!.set!;
+      nativeSetter.call($el[0], "11:00");
+      $el[0].dispatchEvent(new Event("input", { bubbles: true }));
+      $el[0].dispatchEvent(new Event("change", { bubbles: true }));
+    });
 
     // Set custom reminder
-    cy.get("select").eq(1).select("custom");
+    // select[0]=client, [1]=duration, [2]=reminder preset, [3]=custom unit
+    cy.get("select").eq(2).select("custom");
     cy.get('input[type="number"]').clear().type("15");
-    cy.get("select").eq(2).select("minutes");
+    cy.get("select").eq(3).select("minutes");
 
     // Toggle reminder channels
     cy.contains("button", "Email").click(); // activate

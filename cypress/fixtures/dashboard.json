@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "data": {
+    "totalClients": 2,
+    "prospects": 1,
+    "activeClients": 1,
+    "totalOpportunityValue": 11500000,
+    "wonOpportunities": 1,
+    "lostOpportunities": 0,
+    "upcomingActivities": 1,
+    "overdueTasks": 0,
+    "revenueByMonth": {},
+    "clientsByStatus": {},
+    "opportunitiesByStage": {}
+  },
+  "message": null,
+  "errors": []
+}

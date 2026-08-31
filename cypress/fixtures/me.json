@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "email": "admin@eray.com",
+    "firstName": "Adem",
+    "lastName": "Eray",
+    "fullName": "Adem Eray",
+    "role": "admin",
+    "phone": "+33 6 12 45 78 90",
+    "team": "Direction",
+    "status": "active",
+    "isVerified": true
+  },
+  "message": null,
+  "errors": []
+}

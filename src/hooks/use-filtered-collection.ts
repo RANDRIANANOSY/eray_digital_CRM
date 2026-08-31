@@ -7,10 +7,7 @@ export interface FilteredCollectionOptions<T> {
   sort?: (a: T, b: T) => number;
 }
 
-export function useFilteredCollection<T>(
-  items: T[],
-  options: FilteredCollectionOptions<T>
-): T[] {
+export function useFilteredCollection<T>(items: T[], options: FilteredCollectionOptions<T>): T[] {
   return useMemo(() => {
     const normalizedSearch = options.search.trim().toLowerCase();
     let result = items;
@@ -22,7 +19,7 @@ export function useFilteredCollection<T>(
           const value = item[field];
           if (value === null || value === undefined) return false;
           return String(value).toLowerCase().includes(normalizedSearch);
-        })
+        }),
       );
     }
 
