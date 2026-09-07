@@ -58,8 +58,11 @@ describe("Calendar Page", () => {
   };
 
   beforeEach(() => {
+    // Freeze the app clock on Monday July 6, 2026 (matching the mock activity
+    // dates). Without this, the calendar opens on the real system date and the
+    // seeded July events would be filtered out of the visible week.
     cy.mockAllApi(mockCRMData);
-    cy.visitWithSeed("/calendar", mockCRMData);
+    cy.visitWithSeed("/calendar", mockCRMData, undefined, "2026-07-06T12:00:00");
   });
 
   it("should display the calendar page and basic events in week view", () => {

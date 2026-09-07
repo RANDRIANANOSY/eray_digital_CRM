@@ -43,7 +43,15 @@ describe("Login Page with Mocked API & Fallbacks", () => {
       }
     }).as("mockLogin");
 
-    cy.visit("/login");
+    // Seed the session cookies (eray_*) so the layout guard lets the app
+    // through after a successful mocked login.
+    cy.visit("/login", {
+      onBeforeLoad(win) {
+        win.document.cookie = "eray_auth=1; path=/; SameSite=Lax";
+        win.document.cookie = "eray_role=admin; path=/; SameSite=Lax";
+        win.document.cookie = "eray_name=Adem%20Eray; path=/; SameSite=Lax";
+      },
+    });
   });
 
   it("should authenticate successfully with a mocked login response", () => {
@@ -65,10 +73,10 @@ describe("Login Page with Mocked API & Fallbacks", () => {
     cy.url().should("eq", `${Cypress.config("baseUrl")}/`);
     cy.contains("Bonjour").should("be.visible");
 
-    // Clean up local storage
-    cy.window().then((win: Window) => {
-      expect(win.localStorage.getItem("token")).to.equal("mock-token-admin");
-    });
+    // Session is stored in the eray_* cookies (the JWT itself is HttpOnly,
+    // so it is never written to localStorage).
+    cy.getCookie("eray_auth").its("value").should("equal", "1");
+    cy.getCookie("eray_role").its("value").should("equal", "admin");
   });
 
   it("should display an error when mocked login is rejected", () => {

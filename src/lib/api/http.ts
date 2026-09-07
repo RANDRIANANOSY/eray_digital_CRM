@@ -1,5 +1,3 @@
-import { getToken } from "./auth-storage";
-
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 export class ApiError extends Error {
   status: number;
@@ -49,16 +47,34 @@ export function buildQuery<T extends object>(params: T = {} as T): string {
   return qs ? `?${qs}` : "";
 }
 
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)eray_csrf=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const token = getToken();
+  const method = (options.method ?? "GET").toUpperCase();
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(options.body ? { "Content-Type": "application/json" } : {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers as Record<string, string> | undefined),
   };
 
-  const response = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  // Attach CSRF token on state-changing requests (double-submit cookie pattern)
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const csrf = getCsrfToken();
+    if (csrf) {
+      headers["X-CSRF-Token"] = csrf;
+    }
+  }
+
+  // credentials: "include" lets the browser send the HttpOnly auth cookie
+  // (eray_token) automatically — no need to attach an Authorization header.
+  const response = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
   let envelope: Envelope<T> | null = null;
   try {

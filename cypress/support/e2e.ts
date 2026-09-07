@@ -184,22 +184,19 @@ Cypress.Commands.add("mockAllApi", (seedData?: Record<string, unknown>) => {
     },
   ];
 
+  cy.intercept("GET", "/api/clients/*", (req) => {
+    const url = new URL(req.url);
+    const id = Number(url.pathname.split("/").pop());
+    const client = allClients.find((c) => c.id === id);
+    if (client) {
+      req.reply({ statusCode: 200, body: envelope(client) });
+    } else {
+      req.reply({ statusCode: 404, body: envelope(null) });
+    }
+  }).as("apiClientDetail");
+
   cy.intercept("GET", "/api/clients*", (req) => {
     const url = new URL(req.url);
-
-    // Check if it's fetching a single client by ID
-    const match = url.pathname.match(/^\/api\/clients\/(\d+)$/);
-    if (match) {
-      const id = Number(match[1]);
-      const client = allClients.find((c) => c.id === id);
-      if (client) {
-        req.reply({ statusCode: 200, body: envelope(client) });
-      } else {
-        req.reply({ statusCode: 404, body: envelope(null) });
-      }
-      return;
-    }
-
     let filtered = [...allClients];
 
     const q = url.searchParams.get("q");
@@ -690,11 +687,11 @@ Cypress.Commands.add("mockAllApi", (seedData?: Record<string, unknown>) => {
 
   // ── Users ─────────────────────────────────────────────────────────────────
   const seededMembers = Array.isArray(seedData?.members)
-    ? (seedData.members as Record<string, unknown>[]).map((item, index) => ({
+    ? (seedData.members as Record<string, any>[]).map((item, index) => ({
         id: Number(item.id ?? index + 1) || index + 1,
         email: String(item.email ?? `${item.firstName ?? "user"}@eray.com`),
-        firstName: String(item.firstName ?? (item.name ?? "").split(" ")[0] ?? "User"),
-        lastName: String(item.lastName ?? (item.name ?? "").split(" ").slice(1).join(" ") ?? ""),
+        firstName: String(item.firstName ?? String(item.name ?? "").split(" ")[0] ?? "User"),
+        lastName: String(item.lastName ?? String(item.name ?? "").split(" ").slice(1).join(" ") ?? ""),
         fullName: String(
           item.fullName ?? item.name ?? `${item.firstName ?? "User"} ${item.lastName ?? ""}`.trim(),
         ),
@@ -819,13 +816,45 @@ Cypress.Commands.add(
       role: "admin",
       name: "Adem Eray",
     },
+    now?: number | string | Date,
   ) => {
     return cy.visit(url, {
       onBeforeLoad(win) {
         win.localStorage.setItem("eray_crm_data", JSON.stringify(seedData));
-        win.localStorage.setItem("token", auth.token);
-        win.localStorage.setItem("role", auth.role);
-        win.localStorage.setItem("name", auth.name);
+        // The app reads its session from the eray_* cookies (mirrors of the
+        // HttpOnly JWT set by the real backend). Cypress mocks never receive
+        // Set-Cookie headers, so we seed the session ourselves before the app
+        // boots, otherwise every protected page redirects to /login.
+        win.document.cookie = "eray_auth=1; path=/; SameSite=Lax";
+        win.document.cookie = `eray_role=${encodeURIComponent(auth.role)}; path=/; SameSite=Lax`;
+        win.document.cookie = `eray_name=${encodeURIComponent(auth.name)}; path=/; SameSite=Lax`;
+
+        // Freeze the clock for the page session without stubbing timers (so
+        // React Query / sonner etc. keep working normally). Module-level
+        // "new Date()" calls (e.g. the calendar's INITIAL_DATE) then resolve
+        // to the fixed instant.
+        if (now !== undefined) {
+          const FixedDate = win.Date as typeof Date & {
+            (): Date;
+            new (): Date;
+            now(): number;
+            parse(s: string): number;
+            UTC(...args: number[]): number;
+          };
+          const fixedTime = new FixedDate(now).getTime();
+          const RealDate = FixedDate;
+          class MockDate extends RealDate {
+            constructor(...args: unknown[]) {
+              // @ts-expect-error - forward constructors flexibly
+              super(...(args.length ? args : [fixedTime]));
+            }
+            static now(): number {
+              return fixedTime;
+            }
+          }
+          // @ts-expect-error - assign the frozen Date implementation
+          win.Date = MockDate;
+        }
       },
     });
   },

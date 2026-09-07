@@ -44,7 +44,10 @@ describe("Clients Page", () => {
     deals: [],
     projects: [],
     clientEvents: [],
-    members: [],
+    members: [
+      { id: 1, name: "Antoine Roy", role: "Commercial", email: "antoine@eray.com", status: "Actif" },
+      { id: 3, name: "Léa Martin", role: "Manager", email: "lea@eray.com", status: "Actif" },
+    ],
   };
 
   beforeEach(() => {
@@ -180,6 +183,8 @@ describe("Clients Page", () => {
     cy.contains("Mock Prospect One Modifié").parents("tr").find(ACTION_MENU_ICON).parent().click();
 
     cy.contains("Supprimer").click();
+    cy.contains("Supprimer le client").should("be.visible");
+    cy.contains("button", "Supprimer").click();
     cy.contains("Mock Prospect One Modifié").should("not.exist");
   });
 });

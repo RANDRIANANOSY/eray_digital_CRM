@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { members, Member } from "./crm-data";
+import { isAuthenticated, getRole, getName } from "./api/auth-storage";
 
 export type RoleKey = "admin" | "manager" | "commercial";
 
@@ -22,13 +23,7 @@ interface AuthContextType {
   refreshUser: () => void;
 }
 
-const SESSION_MAX_AGE = 12 * 60 * 60 * 1000;
-
 const AuthContext = createContext<AuthContextType | null>(null);
-
-function readFromStorage(key: string): string | null {
-  return localStorage.getItem(key) || sessionStorage.getItem(key);
-}
 
 function mapFrenchRole(role: string): RoleKey {
   if (role === "Administrateur" || role === "admin") return "admin";
@@ -37,21 +32,10 @@ function mapFrenchRole(role: string): RoleKey {
 }
 
 export function getStoredUser(): AuthUser | null {
-  const token = readFromStorage("token");
-  const loginTime = readFromStorage("login_time");
-  const storedRole = readFromStorage("role") || "commercial";
-  const storedName = readFromStorage("name") || "Utilisateur";
-
-  if (!token) return null;
-
-  if (loginTime && Date.now() - parseInt(loginTime, 10) > SESSION_MAX_AGE) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("name");
-    localStorage.removeItem("login_time");
-    sessionStorage.clear();
-    return null;
-  }
+  if (!isAuthenticated()) return null;
+  const storedRole = getRole() || "commercial";
+  const rawName = getName();
+  const storedName = rawName && rawName !== "undefined" ? rawName : "Utilisateur";
 
   const role = mapFrenchRole(storedRole);
   const member = members.find(

@@ -183,9 +183,9 @@ export default function ClientsPage() {
       </div>
 
       {/* Filtres */}
-      <div className="card-elegant p-3 flex flex-wrap items-center gap-2">
+      <div className="card-elegant p-3 flex flex-wrap items-center gap-2 animate-fade-in-up">
         <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors focus-within:text-primary" />
           <input
             value={query}
             onChange={(e) => {
@@ -193,7 +193,7 @@ export default function ClientsPage() {
               setPage(1);
             }}
             placeholder="Rechercher un client, une entreprise…"
-            className="w-full h-9 pl-9 pr-3 rounded-lg bg-muted/60 border border-transparent focus:bg-card focus:border-ring focus:ring-2 focus:ring-ring/15 outline-none text-sm transition-shadow"
+            className="w-full h-9 pl-9 pr-3 rounded-lg bg-muted/60 border border-transparent hover:bg-muted hover:border-border focus:bg-card focus:border-ring focus:ring-2 focus:ring-ring/15 outline-none text-sm transition-all duration-200"
           />
         </div>
         <FilterDropdown

@@ -384,6 +384,7 @@ function ProjectDetailPanel({
       setNewTaskLabel("");
       setNewTaskAssignee("");
       setNewTaskDue("");
+      toast.success("Tâche créée");
     } catch (err) {
       toast.error("Impossible d'ajouter la tâche", { description: errorMessage(err) });
     }

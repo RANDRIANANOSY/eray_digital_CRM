@@ -9,3 +9,4 @@ export { projectsApi } from "./projects";
 export { projectTasksApi } from "./projectTasks";
 export { activitiesApi } from "./activities";
 export { dashboardApi } from "./dashboard";
+export { notificationsApi } from "./notifications";

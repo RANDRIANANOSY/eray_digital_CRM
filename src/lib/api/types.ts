@@ -297,7 +297,6 @@ export interface LoginPayload {
 }
 
 export interface LoginResult {
-  token: string;
   role: UserRole;
   user: UserDto;
 }
@@ -328,4 +327,25 @@ export interface UserInvitePayload {
 export interface UserUpdatePayload {
   role: UserRole;
   team?: string | null;
+}
+
+export type NotificationType =
+  "activity_assigned" | "activity_reminder" | "opportunity_won" | "opportunity_lost" | "system";
+
+export interface NotificationDto {
+  id: number;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  link: string | null;
+  read: boolean;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationListFilters {
+  unreadOnly?: boolean;
+  page?: number;
+  perPage?: number;
+  dir?: "asc" | "desc";
 }

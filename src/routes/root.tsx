@@ -2,16 +2,17 @@ import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from "@ta
 import { Outlet, useRouteError } from "react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { ApiError } from "@/lib/api";
-import { clearSession, getToken } from "@/lib/api/auth-storage";
+import { clearSession, isAuthenticated } from "@/lib/api/auth-storage";
 
-// A 401 while we DO hold a token means it expired/was revoked server-side —
-// force a clean re-login. A 401 with no token (e.g. a failed login attempt
-// itself) is left for the calling screen to handle inline.
+// A 401 while we DO hold a session (auth cookie) means the token
+// expired/was revoked server-side — force a clean re-login. A 401 with no
+// session (e.g. a failed login attempt itself) is left for the calling
+// screen to handle inline.
 function handleExpiredSession(error: unknown) {
   if (
     error instanceof ApiError &&
     error.status === 401 &&
-    getToken() !== null &&
+    isAuthenticated() &&
     window.location.pathname !== "/login"
   ) {
     clearSession();

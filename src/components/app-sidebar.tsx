@@ -61,15 +61,19 @@ export function AppSidebar({ mobileOpen, setMobileOpen }: AppSidebarProps) {
           Espace de travail
         </div>
         <ul className="space-y-1">
-          {visibleNav.map((item) => {
+          {visibleNav.map((item, idx) => {
             const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
-              <li key={item.to}>
+              <li
+                key={item.to}
+                style={{ animationDelay: `${idx * 30}ms` }}
+                className="animate-fade-in-up"
+              >
                 <Link
                   to={item.to}
                   className={cn(
-                    "group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                     active
                       ? "bg-primary/10 text-primary font-semibold shadow-xs"
                       : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60",
@@ -77,13 +81,17 @@ export function AppSidebar({ mobileOpen, setMobileOpen }: AppSidebarProps) {
                 >
                   <Icon
                     className={cn(
-                      "h-4.5 w-4.5 shrink-0 transition-colors",
-                      active ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
+                      "h-4.5 w-4.5 shrink-0 transition-all duration-200",
+                      active
+                        ? "text-primary"
+                        : "text-muted-foreground group-hover:text-foreground group-hover:scale-110",
                     )}
                     strokeWidth={active ? 2.2 : 2}
                   />
                   <span className="truncate">{item.label}</span>
-                  {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
+                  {active && (
+                    <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary status-pulse" />
+                  )}
                 </Link>
               </li>
             );

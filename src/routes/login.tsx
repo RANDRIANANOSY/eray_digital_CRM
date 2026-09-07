@@ -3,8 +3,8 @@ import { useNavigate, Link, useSearchParams } from "react-router";
 import { Eye, EyeOff, Lock, Mail, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import logoUrl from "@/assets/eray.jpg";
+import crmBg from "@/assets/crm.jpg";
 import { useLogin, useRequestPasswordReset } from "@/hooks/api/useAuth";
-import { saveSession } from "@/lib/api/auth-storage";
 import { ApiError } from "@/lib/api";
 import {
   Dialog,
@@ -55,13 +55,11 @@ export default function Login() {
     }
 
     try {
-      const { token, role, user } = await loginMutation.mutateAsync({
+      const { user } = await loginMutation.mutateAsync({
         email: trimmedEmail,
         password: trimmedPassword,
         remember,
       });
-
-      saveSession(token, role, user.fullName, remember);
 
       toast.success("Connexion réussie !", {
         description: `Bienvenue, ${user.fullName} !`,
@@ -97,31 +95,43 @@ export default function Login() {
   const isLoading = loginMutation.isPending;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 md:p-10 bg-slate-100 dark:bg-slate-950 transition-colors duration-500 font-sans">
+    <div
+      className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 md:p-10 bg-cover bg-center bg-no-repeat font-sans"
+      style={{ backgroundImage: `url(${crmBg})` }}
+    >
+      {/* Subtle overlay to enhance readability and contrast */}
+      <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-[3px] pointer-events-none" />
+
       {/* Outer Split Card Container */}
-      <div className="w-full max-w-4xl bg-white dark:bg-card rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[580px] border border-slate-100 dark:border-border/20">
+      <div className="relative z-10 w-full max-w-4xl bg-white/95 dark:bg-card/95 backdrop-blur-md rounded-[32px] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[580px] border border-white/20 dark:border-border/20 animate-fade-in-up">
         {/* LEFT PANEL - Gradient Blue with Logo & Decorative Cloud Wave */}
-        <div className="relative w-full md:w-5/12 bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#6FB1FC] p-8 md:p-10 text-white flex flex-col justify-between items-center text-center overflow-hidden min-h-[260px] md:min-h-[580px]">
+        <div className="relative w-full md:w-5/12 bg-gradient-to-br from-[#0052D4] via-[#4364F7] to-[#6FB1FC] p-8 md:p-10 text-white flex flex-col justify-between items-center text-center overflow-hidden min-h-[260px] md:min-h-[580px] subtle-noise">
           {/* Background circles for soft ambient glow */}
-          <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+          <div className="absolute -top-16 -left-16 w-56 h-56 rounded-full bg-white/10 blur-2xl pointer-events-none animate-pulse-soft" />
           <div className="absolute -bottom-16 -right-16 w-64 h-64 rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
 
           {/* Top Welcome Title */}
           <div className="z-10 w-full pt-2">
-            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white/95 font-display">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white/95 font-display animate-fade-in-up">
               Bienvenue sur
             </h2>
           </div>
 
           {/* Center Logo & Brand Info */}
           <div className="z-10 flex flex-col items-center my-auto py-6">
-            <div className="h-24 w-24 rounded-full bg-white shadow-xl flex items-center justify-center mb-5 p-2.5 transition-transform duration-300 hover:scale-105">
+            <div className="h-24 w-24 rounded-full bg-white shadow-xl flex items-center justify-center mb-5 p-2.5 transition-transform duration-300 hover:scale-105 animate-scale-in">
               <img src={logoUrl} alt="Eray Logo" className="h-16 w-16 object-contain" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-2 font-display">
+            <h1
+              className="text-2xl md:text-3xl font-extrabold tracking-tight text-white mb-2 font-display animate-fade-in-up"
+              style={{ animationDelay: "100ms" }}
+            >
               Eray CRM
             </h1>
-            <p className="text-xs md:text-sm text-blue-100 leading-relaxed max-w-xs font-medium">
+            <p
+              className="text-xs md:text-sm text-blue-100 leading-relaxed max-w-xs font-medium animate-fade-in-up"
+              style={{ animationDelay: "200ms" }}
+            >
               Votre espace de gestion commerciale & relation client tout-en-un.
             </p>
           </div>
@@ -159,7 +169,7 @@ export default function Login() {
         {/* RIGHT PANEL - Form Container */}
         <div className="w-full md:w-7/12 p-6 sm:p-10 md:p-12 flex flex-col justify-center bg-white dark:bg-card">
           <div className="max-w-md mx-auto w-full">
-            <div className="mb-8">
+            <div className="mb-8 animate-fade-in-up" style={{ animationDelay: "250ms" }}>
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight font-display mb-1.5">
                 Connexion
               </h2>
@@ -170,14 +180,18 @@ export default function Login() {
 
             {/* Error panel */}
             {error && (
-              <div className="bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400 px-4 py-3 rounded-xl text-xs font-semibold mb-6 border-l-4 border-l-red-600 text-left flex items-start gap-2.5">
+              <div className="bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400 px-4 py-3 rounded-xl text-xs font-semibold mb-6 border-l-4 border-l-red-600 text-left flex items-start gap-2.5 animate-fade-in">
                 <ShieldAlert className="h-4.5 w-4.5 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-5 text-left">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-5 text-left animate-fade-in-up"
+              style={{ animationDelay: "300ms" }}
+            >
               <div className="space-y-1.5">
                 <label
                   htmlFor="email"
@@ -304,7 +318,10 @@ export default function Login() {
             </form>
 
             {/* Quick login credentials picker */}
-            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-border/30 text-left">
+            <div
+              className="mt-6 pt-5 border-t border-slate-100 dark:border-border/30 text-left animate-fade-in-up"
+              style={{ animationDelay: "400ms" }}
+            >
               <h2 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5">
                 Comptes de test (Sélection rapide)
               </h2>
@@ -312,17 +329,21 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => handleQuickLogin("admin@eray.com")}
-                  className="p-2.5 border border-slate-200 dark:border-border/30 rounded-xl hover:bg-slate-50 dark:hover:bg-muted/30 text-left transition-all text-xs"
+                  className="p-2.5 border border-slate-200 dark:border-border/30 rounded-xl hover:bg-slate-50 dark:hover:bg-muted/30 hover:border-primary/30 hover:shadow-elegant text-left transition-all duration-200 text-xs group"
                 >
-                  <div className="font-semibold text-foreground truncate">AE (Admin)</div>
+                  <div className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                    AE (Admin)
+                  </div>
                   <div className="text-[10px] text-muted-foreground truncate">admin@eray.com</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin("yanis@eray.com")}
-                  className="p-2.5 border border-slate-200 dark:border-border/30 rounded-xl hover:bg-slate-50 dark:hover:bg-muted/30 text-left transition-all text-xs"
+                  className="p-2.5 border border-slate-200 dark:border-border/30 rounded-xl hover:bg-slate-50 dark:hover:bg-muted/30 hover:border-primary/30 hover:shadow-elegant text-left transition-all duration-200 text-xs group"
                 >
-                  <div className="font-semibold text-foreground truncate">YM (Commercial)</div>
+                  <div className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                    YM (Commercial)
+                  </div>
                   <div className="text-[10px] text-muted-foreground truncate">yanis@eray.com</div>
                 </button>
               </div>

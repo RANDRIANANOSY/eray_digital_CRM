@@ -114,10 +114,10 @@ describe("CRM Dashboard with Mocked Data", () => {
     cy.contains("Clients actifs").siblings().last().should("contain.text", "1");
 
     // Opportunités gagnées: 1 "Vente gagnée" deal
-    cy.contains("Opportunités gagnées").siblings().last().should("contain.text", "1");
+    cy.contains("Opp. gagnées").siblings().last().should("contain.text", "1");
 
     // Opportunités perdues: 0 in mock data
-    cy.contains("Opportunités perdues").siblings().last().should("contain.text", "0");
+    cy.contains("Opp. perdues").siblings().last().should("contain.text", "0");
 
     // CA potentiel: total amount of deals = 8,000,000 + 3,500,000 = 11,500,000 -> 11500 K MGA
     cy.contains("CA potentiel").siblings().last().should("contain.text", "11500 K MGA");

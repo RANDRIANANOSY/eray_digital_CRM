@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router";
-import { Search, Bell, Plus, ChevronDown, Command, Menu, Sun, Moon } from "lucide-react";
+import { Search, Plus, ChevronDown, Command, Menu, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoUrl from "@/assets/eray.jpg";
+import { NotificationsBell } from "@/components/notifications-bell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,7 +68,8 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
   const handleLogout = useLogout();
 
   const { data: me } = useMe();
-  const userName = me?.fullName ?? getName() ?? "Utilisateur";
+  const rawName = me?.fullName ?? getName();
+  const userName = rawName && rawName !== "undefined" ? rawName : "Utilisateur";
   const roleSlug = me?.role ?? getRole();
   const userRole =
     roleSlug === "admin" ? "Administrateur" : roleSlug === "manager" ? "Manager" : "Commercial";
@@ -144,7 +146,7 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
 
         <div className="flex-1 max-w-xl">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
             <>
               <label htmlFor="topbar-search" className="sr-only">
                 Rechercher dans le CRM
@@ -156,7 +158,7 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
                 placeholder="Rechercher clients, activités, opportunités…"
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full h-9 pl-9 pr-16 rounded-xl bg-muted/60 border border-border/40 hover:bg-muted focus:bg-card focus:border-ring outline-none text-sm transition-all"
+                className="w-full h-9 pl-9 pr-16 rounded-xl bg-muted/60 border border-border/40 hover:bg-muted hover:border-border focus:bg-card focus:border-ring focus:ring-4 focus:ring-ring/15 outline-none text-sm transition-all duration-200"
               />
             </>
             <kbd className="hidden md:flex absolute right-2.5 top-1/2 -translate-y-1/2 items-center gap-1 px-1.5 py-0.5 rounded-md bg-background border border-border text-[10px] font-medium text-muted-foreground">
@@ -170,13 +172,13 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
-                className="h-9 gradient-brand text-white border-0 hover:opacity-95 shadow-float"
+                className="h-9 gradient-brand text-white border-0 hover:opacity-95 shadow-float transition-all duration-200 hover:shadow-glow"
               >
                 <Plus className="h-4 w-4 mr-1" /> Nouveau
                 <ChevronDown className="h-3.5 w-3.5 ml-1 opacity-80" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 animate-scale-in">
               <DropdownMenuLabel>Actions rapides</DropdownMenuLabel>
               <DropdownMenuItem onSelect={() => setTimeout(() => setAction("client"), 0)}>
                 + Nouveau client
@@ -199,20 +201,17 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
 
           <button
             onClick={toggleTheme}
-            className="h-9 w-9 grid place-items-center rounded-lg hover:bg-muted transition-colors text-muted-foreground"
+            className="h-9 w-9 grid place-items-center rounded-lg hover:bg-muted transition-all duration-200 text-muted-foreground hover:text-foreground"
             aria-label="Changer de thème"
           >
             {theme === "Sombre" ? (
-              <Sun className="h-4.5 w-4.5 text-amber-500" />
+              <Sun className="h-4.5 w-4.5 text-amber-500 transition-transform duration-300 hover:rotate-45" />
             ) : (
-              <Moon className="h-4.5 w-4.5" />
+              <Moon className="h-4.5 w-4.5 transition-transform duration-300 hover:-rotate-12" />
             )}
           </button>
 
-          <button className="relative h-9 w-9 grid place-items-center rounded-lg hover:bg-muted transition-colors">
-            <Bell className="h-4.5 w-4.5 text-muted-foreground" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
-          </button>
+          <NotificationsBell />
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

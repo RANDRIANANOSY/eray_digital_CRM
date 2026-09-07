@@ -213,6 +213,11 @@ describe("Users Page", () => {
 
     // 2. Toggle status (Active -> Inactive)
     cy.get('button[title="Désactiver"]').first().click();
+    // Confirm the destructive action in the confirmation dialog
+    cy.contains("Désactiver le compte").should("be.visible");
+    cy.get('[role="alertdialog"]').within(() => {
+      cy.contains("button", "Désactiver").click();
+    });
     cy.contains("Statut mis à jour").should("exist");
 
     // Verify badge status updated

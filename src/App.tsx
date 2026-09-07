@@ -13,6 +13,7 @@ import Pipeline from "./routes/_app.pipeline.tsx";
 import Projects from "./routes/_app.projects.tsx";
 import Users from "./routes/_app.users.tsx";
 import Settings from "./routes/_app.settings.tsx";
+import Notifications from "./routes/_app.notifications.tsx";
 
 const routes = [
   {
@@ -65,6 +66,10 @@ const routes = [
           {
             path: "users",
             element: <Users />,
+          },
+          {
+            path: "notifications",
+            element: <Notifications />,
           },
           {
             path: "settings",

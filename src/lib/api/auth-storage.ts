@@ -1,39 +1,45 @@
-// Single source of truth for where the JWT/role/name live (localStorage when
-// "remember me" was checked, sessionStorage otherwise). Centralizing this
-// fixes the previous inconsistency where logout cleared token/role but not name.
+// Authenticated-state helpers.
+//
+// The JWT itself now lives in an HttpOnly cookie ("eray_token") set by the
+// Symfony backend on login — JavaScript cannot read it (which is the point:
+// it's not exposed to XSS). The browser sends it automatically on every
+// request via credentials: "include".
+//
+// For the UI we need to know "am I logged in" and "which role/name". The
+// backend mirrors those into three JS-readable cookies (eray_auth, eray_role,
+// eray_name) whose lifetime matches the JWT's, so this module just reads them.
 
-const KEYS = ["token", "role", "name"] as const;
+import { getCookie, deleteCookie } from "./cookie-storage";
 
-function store(remember: boolean): Storage {
-  return remember ? localStorage : sessionStorage;
-}
-
-export function saveSession(token: string, role: string, name: string, remember: boolean): void {
-  const target = store(remember);
-  target.setItem("token", token);
-  target.setItem("role", role);
-  target.setItem("name", name);
-}
+const AUTH_COOKIE = "eray_auth";
+const ROLE_COOKIE = "eray_role";
+const NAME_COOKIE = "eray_name";
 
 export function clearSession(): void {
-  for (const key of KEYS) {
-    localStorage.removeItem(key);
-    sessionStorage.removeItem(key);
-  }
+  // The real auth cookies (incl. the HttpOnly token) are cleared by the
+  // backend's /api/auth/logout. We also clear the JS mirrors here so the UI
+  // reflects the logged-out state immediately.
+  deleteCookie(AUTH_COOKIE);
+  deleteCookie(ROLE_COOKIE);
+  deleteCookie(NAME_COOKIE);
 }
 
+// The token is not readable from JavaScript (HttpOnly). Keeping a getToken()
+// for backward-compat with call sites, but it always returns null.
 export function getToken(): string | null {
-  return localStorage.getItem("token") ?? sessionStorage.getItem("token");
+  return null;
 }
 
 export function getRole(): string | null {
-  return localStorage.getItem("role") ?? sessionStorage.getItem("role");
+  const val = getCookie(ROLE_COOKIE);
+  return val && val !== "undefined" ? val : null;
 }
 
 export function getName(): string | null {
-  return localStorage.getItem("name") ?? sessionStorage.getItem("name");
+  const val = getCookie(NAME_COOKIE);
+  return val && val !== "undefined" ? val : null;
 }
 
 export function isAuthenticated(): boolean {
-  return getToken() !== null;
+  return getCookie(AUTH_COOKIE) === "1";
 }
