@@ -18,7 +18,7 @@ import {
 } from "@/hooks/api/useOpportunities";
 import { useUsers } from "@/hooks/api/useUsers";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NewOpportunityDialog } from "@/components/quick-create-dialogs";
 import { ConfirmDialog, type ConfirmDialogState } from "@/components/confirm-dialog";
@@ -301,14 +301,12 @@ export default function PipelinePage() {
                           )}
                         </div>
                         <div className="mt-2.5 flex items-center justify-between">
-                          <Avatar className="h-6 w-6">
-                            <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-[9px] font-semibold">
-                              {d.ownerName
-                                .split(" ")
-                                .map((s) => s[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
+                          <UserAvatar
+                            photo={d.ownerPhoto}
+                            name={d.ownerName}
+                            className="h-6 w-6"
+                            fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[9px] font-semibold"
+                          />
                           {d.nextAction && (
                             <span className="text-[10px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded truncate max-w-[120px]">
                               {d.nextAction}

@@ -78,6 +78,7 @@ export interface UserDto {
   role: UserRole;
   phone: string | null;
   team: string | null;
+  photo: string | null;
   status: UserStatus;
   isVerified: boolean;
 }
@@ -93,6 +94,7 @@ export interface ClientDto {
   sector: string | null;
   ownerId: number;
   ownerName: string;
+  ownerPhoto: string | null;
   status: ClientStatus;
   priority: Priority;
   tags: string[];
@@ -138,6 +140,7 @@ export interface OpportunityDto {
   company: string | null;
   ownerId: number;
   ownerName: string;
+  ownerPhoto: string | null;
   amount: number;
   probability: number;
   stage: OpportunityStage;
@@ -179,11 +182,12 @@ export interface ProjectDto {
   clientName: string;
   ownerId: number;
   ownerName: string;
+  ownerPhoto: string | null;
   startDate: string;
   endDate: string | null;
   progress: number;
   status: ProjectStatus;
-  teamMembers: { id: number; name: string }[];
+  teamMembers: { id: number; name: string; photo: string | null }[];
   taskCount: number;
   createdAt: string;
   updatedAt: string;
@@ -214,6 +218,7 @@ export interface ProjectTaskDto {
   status: ProjectTaskStatus;
   assigneeId: number | null;
   assigneeName: string | null;
+  assigneePhoto: string | null;
   dueDate: string | null;
   priority: Priority;
   description: string | null;
@@ -238,6 +243,7 @@ export interface ActivityDto {
   clientName: string;
   ownerId: number;
   ownerName: string;
+  ownerPhoto: string | null;
   scheduledAt: string;
   durationMinutes: number | null;
   status: ActivityStatus;

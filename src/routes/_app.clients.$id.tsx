@@ -21,6 +21,7 @@ import { useActivities } from "@/hooks/api/useActivities";
 import { useOpportunities } from "@/hooks/api/useOpportunities";
 import { useProjects } from "@/hooks/api/useProjects";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -186,7 +187,17 @@ export default function ClientDetail() {
                 </span>
               </DetailRow>
               {client.sector && <DetailRow label="Secteur">{client.sector}</DetailRow>}
-              <DetailRow label="Responsable">{client.ownerName}</DetailRow>
+              <DetailRow label="Responsable">
+                <span className="flex items-center gap-1.5">
+                  <UserAvatar
+                    photo={client.ownerPhoto}
+                    name={client.ownerName}
+                    className="h-5 w-5"
+                    fallbackClassName="bg-primary/10 text-primary text-[8px] font-semibold"
+                  />
+                  {client.ownerName}
+                </span>
+              </DetailRow>
               {client.lastContactAt && (
                 <DetailRow label="Dernier contact">
                   {new Date(client.lastContactAt).toLocaleDateString("fr-FR")}
@@ -346,7 +357,15 @@ export default function ClientDetail() {
                     >
                       <div className="min-w-0">
                         <div className="text-sm font-semibold">{o.stage}</div>
-                        <div className="text-xs text-muted-foreground">{o.ownerName}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <UserAvatar
+                            photo={o.ownerPhoto}
+                            name={o.ownerName}
+                            className="h-4 w-4"
+                            fallbackClassName="bg-primary/10 text-primary text-[8px] font-semibold"
+                          />
+                          {o.ownerName}
+                        </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-sm font-bold text-primary">
@@ -376,7 +395,13 @@ export default function ClientDetail() {
                             <h3 className="font-display font-bold text-base leading-tight">
                               {p.name}
                             </h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">
+                            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                              <UserAvatar
+                                photo={p.ownerPhoto}
+                                name={p.ownerName}
+                                className="h-4 w-4"
+                                fallbackClassName="bg-primary/10 text-primary text-[8px] font-semibold"
+                              />
                               Responsable {p.ownerName}
                             </p>
                           </div>

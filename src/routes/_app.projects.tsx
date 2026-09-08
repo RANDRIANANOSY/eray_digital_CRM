@@ -26,7 +26,7 @@ import {
 } from "@/hooks/api/useProjectTasks";
 import { useUsers } from "@/hooks/api/useUsers";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NewProjectDialog } from "@/components/quick-create-dialogs";
@@ -198,14 +198,12 @@ export default function ProjectsPage() {
                     >
                       {active && <Check className="h-3 w-3" />}
                     </span>
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-[9px] font-semibold">
-                        {m.fullName
-                          .split(" ")
-                          .map((s) => s[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      photo={m.photo}
+                      name={m.fullName}
+                      className="h-6 w-6"
+                      fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[9px] font-semibold"
+                    />
                     <span className="flex-1 text-left text-xs">{m.fullName}</span>
                   </button>
                 );
@@ -304,14 +302,13 @@ export default function ProjectsPage() {
               <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
                 <div className="flex items-center -space-x-1.5">
                   {p.teamMembers.map((m) => (
-                    <Avatar key={m.id} className="h-7 w-7 ring-2 ring-card" title={m.name}>
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-[10px] font-semibold">
-                        {m.name
-                          .split(" ")
-                          .map((s) => s[0])
-                          .join("")}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      key={m.id}
+                      photo={m.photo}
+                      name={m.name}
+                      className="h-7 w-7 ring-2 ring-card"
+                      fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[10px] font-semibold"
+                    />
                   ))}
                 </div>
                 <Button
@@ -435,8 +432,15 @@ function ProjectDetailPanel({
         <div className="flex items-start justify-between gap-3 border-b border-border pb-4">
           <div>
             <h3 className="text-lg font-bold font-display">{project.name}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Client : {project.clientName} • Responsable : {project.ownerName}
+            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+              Client : {project.clientName} • Responsable :{" "}
+              <UserAvatar
+                photo={project.ownerPhoto}
+                name={project.ownerName}
+                className="h-4 w-4"
+                fallbackClassName="bg-primary/10 text-primary text-[8px] font-semibold"
+              />
+              {project.ownerName}
             </p>
           </div>
           <span
@@ -487,10 +491,20 @@ function ProjectDetailPanel({
                       >
                         {t.label}
                       </span>
-                      <span className="text-[10px] text-muted-foreground mt-0.5 block">
-                        Assigné à:{" "}
-                        <span className="font-semibold text-foreground">
-                          {t.assigneeName ?? "—"}
+                      <span className="text-[10px] text-muted-foreground mt-0.5 block items-center gap-1.5 flex">
+                        {t.assigneeId ? (
+                          <UserAvatar
+                            photo={t.assigneePhoto}
+                            name={t.assigneeName ?? undefined}
+                            className="h-4 w-4"
+                            fallbackClassName="bg-primary/10 text-primary text-[8px] font-semibold"
+                          />
+                        ) : null}
+                        <span>
+                          Assigné à:{" "}
+                          <span className="font-semibold text-foreground">
+                            {t.assigneeName ?? "—"}
+                          </span>
                         </span>
                         {t.dueDate && (
                           <>

@@ -21,6 +21,7 @@ import { NewClientDialog } from "@/components/quick-create-dialogs";
 import { ConfirmDialog, type ConfirmDialogState } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { PriorityDot } from "@/components/crm-atoms";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -337,7 +338,15 @@ export default function ClientsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground truncate max-w-[140px]">
-                    {c.ownerName}
+                    <span className="flex items-center gap-1.5">
+                      <UserAvatar
+                        photo={c.ownerPhoto}
+                        name={c.ownerName}
+                        className="h-5 w-5 shrink-0"
+                        fallbackClassName="bg-primary/10 text-primary text-[8px] font-semibold"
+                      />
+                      <span className="truncate">{c.ownerName}</span>
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-right font-semibold whitespace-nowrap">
                     {c.value.toLocaleString("fr")} MGA

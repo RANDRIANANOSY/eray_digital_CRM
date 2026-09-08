@@ -24,3 +24,25 @@ export function useUpdateMe() {
     },
   });
 }
+
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => meApi.uploadAvatar(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: meKeys.me });
+    },
+  });
+}
+
+export function useRemoveAvatar() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => meApi.removeAvatar(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: meKeys.me });
+    },
+  });
+}

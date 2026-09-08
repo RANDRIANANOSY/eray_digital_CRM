@@ -18,7 +18,7 @@ import { ConfirmDialog, type ConfirmDialogState } from "@/components/confirm-dia
 import { authApi, ApiError } from "@/lib/api";
 import type { UserDto, UserRole } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -407,12 +407,12 @@ export default function UsersPage() {
                 <tr key={u.id} className="hover:bg-muted/30">
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarFallback className="bg-primary/10 text-primary text-[11px] font-semibold">
-                          {u.firstName[0]}
-                          {u.lastName[0]}
-                        </AvatarFallback>
-                      </Avatar>
+                      <UserAvatar
+                        photo={u.photo}
+                        name={u.fullName}
+                        className="h-9 w-9"
+                        fallbackClassName="bg-primary/10 text-primary text-[11px] font-semibold"
+                      />
                       <div>
                         <div className="font-semibold text-foreground">{u.fullName}</div>
                         <div className="text-[11px] text-muted-foreground">{u.email}</div>
@@ -549,12 +549,12 @@ export default function UsersPage() {
             </DialogHeader>
             <div className="py-4 space-y-4">
               <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-lg font-bold">
-                    {selectedUser.firstName[0]}
-                    {selectedUser.lastName[0]}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  photo={selectedUser.photo}
+                  name={selectedUser.fullName}
+                  className="h-16 w-16"
+                  fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-lg font-bold"
+                />
                 <div>
                   <h3 className="font-semibold text-lg">{selectedUser.fullName}</h3>
                   <p className="text-sm text-muted-foreground">{selectedUser.email}</p>

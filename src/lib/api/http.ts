@@ -56,7 +56,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const method = (options.method ?? "GET").toUpperCase();
   const headers: Record<string, string> = {
     Accept: "application/json",
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
+    ...(options.body && !(options.body instanceof FormData)
+      ? { "Content-Type": "application/json" }
+      : {}),
     ...(options.headers as Record<string, string> | undefined),
   };
 
@@ -100,6 +102,11 @@ export const http = {
     request<T>(path, {
       method: "POST",
       body: body !== undefined ? JSON.stringify(body) : undefined,
+    }),
+  postForm: <T>(path: string, form: FormData) =>
+    request<T>(path, {
+      method: "POST",
+      body: form,
     }),
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, {

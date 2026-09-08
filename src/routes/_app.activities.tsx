@@ -21,7 +21,7 @@ import {
 } from "@/hooks/api/useActivities";
 import { useUsers } from "@/hooks/api/useUsers";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ActivityIcon, StatusBadge, PriorityDot } from "@/components/crm-atoms";
 import { NewActivityDialog } from "@/components/new-activity-dialog";
@@ -386,14 +386,12 @@ export default function ActivitiesPage() {
               </div>
 
               <div className="flex flex-col items-end gap-1 shrink-0">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-[10px] font-semibold">
-                    {a.ownerName
-                      .split(" ")
-                      .map((s) => s[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  photo={a.ownerPhoto}
+                  name={a.ownerName}
+                  className="h-8 w-8"
+                  fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[10px] font-semibold"
+                />
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   {a.status !== "terminé" ? (
                     <Button

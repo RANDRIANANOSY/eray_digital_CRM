@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import {
   NewClientDialog,
   NewProjectDialog,
@@ -216,15 +216,12 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 h-9 pl-1 pr-2 rounded-lg hover:bg-muted transition-colors">
-                <Avatar className="h-7 w-7">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-[11px] font-semibold">
-                    {userName
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar
+                  photo={me?.photo}
+                  name={userName}
+                  className="h-7 w-7"
+                  fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[11px] font-semibold"
+                />
                 <div className="hidden md:block text-left leading-tight">
                   <div className="text-[12px] font-semibold">{userName}</div>
                   <div className="text-[10px] text-muted-foreground">{userRole}</div>

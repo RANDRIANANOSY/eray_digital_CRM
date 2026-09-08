@@ -24,6 +24,7 @@ import { OPPORTUNITY_STAGES } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ActivityIcon, StatusBadge, PriorityDot } from "@/components/crm-atoms";
+import { UserAvatar } from "@/components/user-avatar";
 import { usePageMeta } from "@/hooks/use-page-meta";
 
 const toneMap = {
@@ -377,7 +378,13 @@ export default function Dashboard() {
                   <ActivityIcon type={a.type} />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium">{a.title}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                      <UserAvatar
+                        photo={a.ownerPhoto}
+                        name={a.ownerName}
+                        className="h-4 w-4"
+                        fallbackClassName="bg-primary/10 text-primary text-[7px] font-semibold"
+                      />
                       {a.clientName} • par {a.ownerName}
                     </div>
                   </div>

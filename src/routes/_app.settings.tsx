@@ -1,5 +1,5 @@
 import { usePageMeta } from "@/hooks/use-page-meta";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   User,
   Users,
@@ -9,12 +9,13 @@ import {
   Shield,
   CreditCard,
   Lock,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { useMe, useUpdateMe } from "@/hooks/api/useMe";
+import { useMe, useUpdateMe, useUploadAvatar, useRemoveAvatar } from "@/hooks/api/useMe";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authApi, ApiError } from "@/lib/api";
 import { toast } from "sonner";
@@ -110,10 +111,14 @@ function NotConnectedBanner() {
 function ProfileSection() {
   const { data: me, isLoading, isError } = useMe();
   const updateMe = useUpdateMe();
+  const uploadAvatar = useUploadAvatar();
+  const removeAvatar = useRemoveAvatar();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [team, setTeam] = useState("");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -126,12 +131,60 @@ function ProfileSection() {
     }
   }, [me, hydrated]);
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const handleSave = async () => {
     try {
       await updateMe.mutateAsync({ firstName, lastName, phone: phone || null, team: team || null });
       toast.success("Profil mis à jour");
     } catch (err) {
       toast.error("Mise à jour impossible", {
+        description: err instanceof ApiError ? err.message : "Une erreur est survenue.",
+      });
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Fichier invalide", { description: "Veuillez choisir une image." });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image trop volumineuse", {
+        description: "L'image ne doit pas dépasser 2 Mo.",
+      });
+      return;
+    }
+
+    setPreviewUrl(URL.createObjectURL(file));
+    try {
+      await uploadAvatar.mutateAsync(file);
+      toast.success("Photo mise à jour");
+    } catch (err) {
+      setPreviewUrl(null);
+      toast.error("Upload impossible", {
+        description: err instanceof ApiError ? err.message : "Une erreur est survenue.",
+      });
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    try {
+      await removeAvatar.mutateAsync();
+      setPreviewUrl(null);
+      toast.success("Photo supprimée");
+    } catch (err) {
+      toast.error("Suppression impossible", {
         description: err instanceof ApiError ? err.message : "Une erreur est survenue.",
       });
     }
@@ -156,19 +209,46 @@ function ProfileSection() {
       desc="Ces informations sont visibles par les membres de votre équipe."
     >
       <div className="flex items-center gap-4">
-        <Avatar className="h-20 w-20">
-          <AvatarFallback className="bg-gradient-to-br from-primary to-violet text-white text-xl font-bold">
-            {me.firstName[0]}
-            {me.lastName[0]}
-          </AvatarFallback>
-        </Avatar>
+        <UserAvatar
+          photo={previewUrl ?? me.photo}
+          name={me.fullName}
+          className="h-20 w-20"
+          imageClassName={previewUrl ? "object-cover" : undefined}
+          fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-xl font-bold"
+        />
         <div>
-          <Button variant="outline" size="sm" disabled title="Pas d'endpoint d'upload côté backend">
-            Changer la photo
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={uploadAvatar.isPending}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {uploadAvatar.isPending ? "Envoi…" : "Changer la photo"}
+            </Button>
+            {me.photo || previewUrl ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                disabled={removeAvatar.isPending}
+                onClick={handleRemovePhoto}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1" /> Supprimer
+              </Button>
+            ) : null}
+          </div>
           <p className="text-[11px] text-muted-foreground mt-1.5">
-            Non disponible — aucun endpoint d'upload backend.
+            JPG, PNG, GIF ou WEBP — 2 Mo maximum.
           </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+            data-cy="profile-photo-input"
+          />
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
