@@ -10,6 +10,9 @@ import {
   CreditCard,
   Lock,
   Trash2,
+  Calendar,
+  Mail,
+  Trophy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
@@ -43,8 +46,17 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-6">
-        <nav className="card-elegant p-2 h-fit">
+      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+        <nav className="card-elegant p-2 h-fit sticky top-20">
+          <div className="px-3 py-2 mb-1 flex items-center gap-2.5 border-b border-border/60 pb-3">
+            <span className="h-8 w-8 rounded-lg gradient-brand grid place-items-center shadow-float">
+              <SettingsIcon className="h-4 w-4 text-white" />
+            </span>
+            <div className="leading-tight">
+              <div className="text-sm font-semibold font-display text-foreground">Paramètres</div>
+              <div className="text-[10px] text-muted-foreground">Configuration de l'espace</div>
+            </div>
+          </div>
           {sections.map((s) => {
             const Icon = s.icon;
             const isActive = active === s.id;
@@ -52,11 +64,25 @@ export default function SettingsPage() {
               <button
                 key={s.id}
                 onClick={() => setActive(s.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
-                  isActive ? "bg-primary/10 text-primary" : "text-foreground/70 hover:bg-muted"
+                className={`group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground/70 hover:bg-muted hover:text-foreground"
                 }`}
               >
-                <Icon className="h-4 w-4" /> {s.label}
+                <span
+                  className={`h-7 w-7 rounded-md grid place-items-center transition-all duration-200 ${
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-float"
+                      : "bg-muted text-muted-foreground group-hover:bg-accent group-hover:text-foreground group-hover:scale-105"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" strokeWidth={isActive ? 2.2 : 2} />
+                </span>
+                {s.label}
+                {isActive && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary status-pulse" />
+                )}
               </button>
             );
           })}
@@ -86,10 +112,12 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="card-elegant p-6">
-      <div className="mb-5">
-        <h3 className="font-display font-bold text-lg">{title}</h3>
-        {desc && <p className="text-xs text-muted-foreground mt-1">{desc}</p>}
+    <div className="card-elegant p-6 hover-glow">
+      <div className="mb-5 flex items-start gap-3 border-b border-border/60 pb-4">
+        <div className="min-w-0">
+          <h3 className="font-display font-bold text-lg">{title}</h3>
+          {desc && <p className="text-xs text-muted-foreground mt-1">{desc}</p>}
+        </div>
       </div>
       {children}
     </div>
@@ -208,15 +236,18 @@ function ProfileSection() {
       title="Profil utilisateur"
       desc="Ces informations sont visibles par les membres de votre équipe."
     >
-      <div className="flex items-center gap-4">
-        <UserAvatar
-          photo={previewUrl ?? me.photo}
-          name={me.fullName}
-          className="h-20 w-20"
-          imageClassName={previewUrl ? "object-cover" : undefined}
-          fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-xl font-bold"
-        />
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+        <div className="relative w-fit">
+          <div className="absolute -inset-1 rounded-full bg-gradient-brand opacity-75 blur-sm" />
+          <UserAvatar
+            photo={previewUrl ?? me.photo}
+            name={me.fullName}
+            className="relative h-20 w-20 ring-4 ring-background"
+            imageClassName={previewUrl ? "object-cover" : undefined}
+            fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-xl font-bold"
+          />
+        </div>
+        <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <Button
               variant="outline"
@@ -327,6 +358,7 @@ function TeamsSection() {
 }
 
 function NotificationsSection() {
+  const icons = [Bell, Calendar, Trophy, Mail];
   const items = [
     {
       label: "Nouvelle activité assignée",
@@ -340,15 +372,26 @@ function NotificationsSection() {
     <Card title="Notifications" desc="Choisissez quand et comment être alerté.">
       <NotConnectedBanner />
       <ul className="divide-y divide-border">
-        {items.map((n) => (
-          <li key={n.label} className="py-4 flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="font-medium text-sm">{n.label}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">{n.desc}</div>
-            </div>
-            <Switch disabled />
-          </li>
-        ))}
+        {items.map((n, i) => {
+          const Icon = icons[i] ?? Bell;
+          return (
+            <li
+              key={n.label}
+              className="py-4 flex items-center justify-between gap-4 group"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="h-9 w-9 rounded-lg bg-muted text-muted-foreground grid place-items-center shrink-0 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <div className="font-medium text-sm">{n.label}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{n.desc}</div>
+                </div>
+              </div>
+              <Switch disabled />
+            </li>
+          );
+        })}
       </ul>
     </Card>
   );
@@ -392,15 +435,31 @@ function DisplaySection() {
       desc="Le thème est enregistré localement dans votre navigateur."
     >
       <div>
-        <div className="text-sm font-semibold mb-2">Thème</div>
-        <div className="grid grid-cols-3 gap-3">
-          {["Clair", "Sombre", "Système"].map((t) => (
+        <div className="text-sm font-semibold mb-3">Thème</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {[
+            { id: "Clair", label: "Clair", swatch: "bg-white border border-border" },
+            { id: "Sombre", label: "Sombre", swatch: "bg-slate-900 border border-slate-700" },
+            { id: "Système", label: "Système", swatch: "bg-gradient-to-r from-slate-900 to-slate-900 border border-border" },
+          ].map((t) => (
             <button
-              key={t}
-              onClick={() => setTheme(t)}
-              className={`p-3 rounded-xl border ${theme === t ? "border-primary bg-primary/5 text-primary" : "border-border text-foreground/70"} text-sm font-medium transition`}
+              key={t.id}
+              onClick={() => setTheme(t.id)}
+              className={`relative p-3 rounded-xl border-2 transition-all duration-200 text-left ${
+                theme === t.id
+                  ? "border-primary bg-primary/5 shadow-glow"
+                  : "border-border text-foreground/70 hover:border-primary/30 hover:bg-muted/50"
+              }`}
             >
-              {t}
+              <div className={`h-8 w-14 rounded-lg ${t.swatch} shadow-inner-soft`}></div>
+              <div className="text-sm font-medium mt-2">{t.label}</div>
+              {theme === t.id && (
+                <span className="absolute top-2 right-2 h-4 w-4 rounded-full bg-primary text-primary-foreground grid place-items-center">
+                  <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none">
+                    <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -445,25 +504,39 @@ function SecuritySection() {
   return (
     <Card title="Sécurité" desc="Gérez le mot de passe et la sécurité de votre compte.">
       <div className="space-y-6">
-        <div>
-          <h4 className="text-sm font-semibold mb-1">Mot de passe</h4>
-          <p className="text-xs text-muted-foreground mb-3">
-            Aucun endpoint de changement de mot de passe en session n'existe côté backend — utilisez
-            le lien de réinitialisation par e-mail.
-          </p>
-          <Button onClick={handleSendReset} disabled={sending || !me}>
-            {sending ? "Envoi…" : "Recevoir un lien de réinitialisation"}
-          </Button>
+        <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/40 border border-border/60">
+          <span className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
+            <Lock className="h-4.5 w-4.5" />
+          </span>
+          <div className="min-w-0">
+            <h4 className="text-sm font-semibold">Mot de passe</h4>
+            <p className="text-xs text-muted-foreground mt-1">
+              Aucun endpoint de changement de mot de passe en session n'existe côté backend — utilisez
+              le lien de réinitialisation par e-mail.
+            </p>
+            <Button
+              onClick={handleSendReset}
+              disabled={sending || !me}
+              className="mt-3 gradient-brand text-white border-0"
+            >
+              {sending ? "Envoi…" : "Recevoir un lien de réinitialisation"}
+            </Button>
+          </div>
         </div>
 
-        <div className="pt-4 border-t border-border">
+        <div className="pt-5 border-t border-border">
           <NotConnectedBanner />
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-semibold">Authentification à deux facteurs (2FA)</h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                Sécurisez votre compte avec une étape de validation supplémentaire.
-              </p>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <span className="h-10 w-10 rounded-lg bg-muted text-muted-foreground grid place-items-center shrink-0">
+                <Shield className="h-4.5 w-4.5" />
+              </span>
+              <div className="min-w-0">
+                <h4 className="text-sm font-semibold">Authentification à deux facteurs (2FA)</h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Sécurisez votre compte avec une étape de validation supplémentaire.
+                </p>
+              </div>
             </div>
             <Switch disabled />
           </div>

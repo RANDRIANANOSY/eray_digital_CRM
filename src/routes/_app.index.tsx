@@ -23,6 +23,7 @@ import { useOpportunities } from "@/hooks/api/useOpportunities";
 import { OPPORTUNITY_STAGES } from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
 import { ActivityIcon, StatusBadge, PriorityDot } from "@/components/crm-atoms";
 import { UserAvatar } from "@/components/user-avatar";
 import { usePageMeta } from "@/hooks/use-page-meta";
@@ -98,44 +99,58 @@ export default function Dashboard() {
         {
           label: "Prospects",
           value: stats.prospects.toString(),
-          tone: "brand" as const,
           iconKey: "prospects" as const,
+          gradient: "from-emerald-500 via-teal-500 to-green-600",
+          subtitle: "Ajoutés cette année",
+          subvalue: "100% actifs",
         },
         {
           label: "Clients actifs",
           value: stats.activeClients.toString(),
-          tone: "success" as const,
           iconKey: "clients" as const,
+          gradient: "from-sky-400 via-blue-500 to-indigo-600",
+          subtitle: "Portefeuille client",
+          subvalue: "En progression",
         },
         {
           label: "Opp. gagnées",
           value: stats.wonOpportunities.toString(),
-          tone: "violet" as const,
           iconKey: "won" as const,
+          gradient: "from-purple-500 via-violet-600 to-indigo-700",
+          subtitle: "Ventes réussies",
+          subvalue: `${winRate}% succès`,
         },
         {
           label: "Opp. perdues",
           value: stats.lostOpportunities.toString(),
-          tone: "destructive" as const,
           iconKey: "lost" as const,
+          gradient: "from-rose-500 via-red-500 to-pink-600",
+          subtitle: "Dossiers fermés",
+          subvalue: `${stats.lostOpportunities} opportunités`,
         },
         {
           label: "CA potentiel",
           value: formatK(stats.totalOpportunityValue),
-          tone: "brand" as const,
           iconKey: "pipeline" as const,
+          gradient: "from-amber-500 via-orange-500 to-red-500",
+          subtitle: "Pipeline global",
+          subvalue: "Valeur estimée",
         },
         {
           label: "CA signé",
           value: formatK(totalSigned),
-          tone: "success" as const,
           iconKey: "signed" as const,
+          gradient: "from-teal-500 via-emerald-600 to-green-600",
+          subtitle: "Chiffre d'affaires",
+          subvalue: "12 derniers mois",
         },
         {
           label: "Conversion",
           value: `${winRate}%`,
-          tone: "violet" as const,
           iconKey: "conversion" as const,
+          gradient: "from-violet-600 via-fuchsia-600 to-pink-600",
+          subtitle: "Taux de succès",
+          subvalue: "Objectif > 50%",
         },
       ]
     : [];
@@ -174,33 +189,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPI grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
+      {/* KPI grid with Gradient Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3.5">
         {statsLoading
           ? Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 rounded-xl" />
+              <Skeleton key={i} className="h-36 rounded-3xl" />
             ))
           : kpis.map((k, i) => {
               const KpiIcon = kpiIcons[k.iconKey];
               return (
                 <div
                   key={k.label}
-                  className="card-elegant p-4 hover-glow group cursor-default animate-fade-in-up"
+                  className="animate-fade-in-up"
                   style={{ animationDelay: `${i * 40}ms` }}
                 >
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`h-8 w-8 rounded-lg grid place-items-center ${toneMap[k.tone]} transition-transform duration-200 group-hover:scale-110`}
-                    >
-                      <KpiIcon className="h-4 w-4" />
-                    </span>
-                  </div>
-                  <div className="mt-3 text-[11px] text-muted-foreground uppercase tracking-wide font-medium">
-                    {k.label}
-                  </div>
-                  <div className="text-xl font-bold font-display mt-0.5 tracking-tight">
-                    {k.value}
-                  </div>
+                  <StatCard
+                    title={k.label}
+                    value={k.value}
+                    icon={<KpiIcon className="h-5 w-5" />}
+                    gradient={k.gradient}
+                    subtitle={k.subtitle}
+                    subvalue={k.subvalue}
+                  />
                 </div>
               );
             })}
@@ -492,40 +502,46 @@ function SectionHeader({
 
 function RevenueChart({ series }: { series: Record<string, number> }) {
   const entries = Object.entries(series);
+  const hasData = entries.some(([, v]) => v > 0);
   const max = Math.max(1, ...entries.map(([, v]) => v));
   const width = 100;
   const height = 60;
+  const padY = 5;
 
-  const toPath = () =>
-    entries
-      .map(([, v], i) => {
-        const x = (i / Math.max(1, entries.length - 1)) * width;
-        const y = height - (v / max) * height;
-        return `${i === 0 ? "M" : "L"}${x},${y}`;
-      })
-      .join(" ");
-  const toSmoothPath = () => {
-    if (entries.length < 2) {
-      return toPath();
+  const points = entries.map(([, v], i) => ({
+    x: entries.length <= 1 ? 0 : (i / (entries.length - 1)) * width,
+    y: padY + ((max - v) / max) * (height - padY * 2),
+  }));
+
+  const catmullRom = () => {
+    if (points.length < 2) {
+      return points.length === 1 ? `M${points[0].x},${points[0].y}` : "";
     }
-    const points = entries.map(([, v], i) => {
-      const x = (i / Math.max(1, entries.length - 1)) * width;
-      const y = height - (v / max) * height;
-      return [x, y];
-    });
-    let d = `M${points[0][0]},${points[0][1]}`;
+    let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
     for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i];
-      const p1 = points[i + 1];
-      const mx = (p0[0] + p1[0]) / 2;
-      const my = (p0[1] + p1[1]) / 2;
-      d += ` Q${p0[0]},${p0[1]} ${mx},${my}`;
+      const p0 = points[i - 1] ?? points[i];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[i + 2] ?? p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6;
+      const c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6;
+      const c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
     }
-    const last = points[points.length - 1];
-    d += ` T${last[0]},${last[1]}`;
     return d;
   };
-  const toArea = () => `${toSmoothPath()} L${width},${height} L0,${height} Z`;
+
+  const linePath = catmullRom();
+  const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
+  const lineLength = points.reduce(
+    (acc, p, i) =>
+      i === 0
+        ? acc
+        : acc + Math.hypot(p.x - points[i - 1].x, p.y - points[i - 1].y),
+    0,
+  );
+  const lastPoint = points[points.length - 1];
 
   return (
     <div className="relative">
@@ -535,11 +551,18 @@ function RevenueChart({ series }: { series: Record<string, number> }) {
         preserveAspectRatio="none"
       >
         <defs>
-          <linearGradient id="grad-ca" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.55 0.22 265)" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="oklch(0.55 0.22 265)" stopOpacity="0" />
+          <linearGradient id="grad-ca-line" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="oklch(0.5 0.19 262)" />
+            <stop offset="55%" stopColor="oklch(0.55 0.22 265)" />
+            <stop offset="100%" stopColor="oklch(0.54 0.24 290)" />
+          </linearGradient>
+          <linearGradient id="grad-ca-area" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="oklch(0.55 0.22 265)" stopOpacity="0.3" />
+            <stop offset="70%" stopColor="oklch(0.52 0.24 290)" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="oklch(0.52 0.24 290)" stopOpacity="0" />
           </linearGradient>
         </defs>
+
         {[0, 0.25, 0.5, 0.75, 1].map((r) => (
           <line
             key={r}
@@ -552,16 +575,66 @@ function RevenueChart({ series }: { series: Record<string, number> }) {
             strokeDasharray="1 2"
           />
         ))}
-        <path d={toArea()} fill="url(#grad-ca)" />
+
+        <path d={areaPath} fill="url(#grad-ca-area)" className="animate-fade-in" />
+
         <path
-          d={toSmoothPath()}
+          d={linePath}
           fill="none"
-          stroke="oklch(0.55 0.22 265)"
-          strokeWidth="1.4"
+          stroke="url(#grad-ca-line)"
+          strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
+          strokeDasharray={lineLength}
+          style={{
+            strokeDashoffset: lineLength,
+            ["--draw-length" as string]: lineLength,
+            animation: "draw-line 1.4s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards",
+          }}
         />
+
+        {hasData &&
+          points.map((p, i) => (
+            <g key={i} style={{ animation: `pop-dot 0.4s ease ${0.8 + i * 0.06}s both` }}>
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r={i === points.length - 1 ? 1.7 : 1.1}
+                fill={
+                  i === points.length - 1
+                    ? "oklch(0.55 0.22 265)"
+                    : "oklch(1 0 0)"
+                }
+                stroke="oklch(0.55 0.22 265)"
+                strokeWidth="0.8"
+              />
+              {i === points.length - 1 && (
+                <>
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r="3.2"
+                    fill="none"
+                    stroke="oklch(0.55 0.22 265 / 0.35)"
+                    strokeWidth="0.6"
+                  />
+                </>
+              )}
+            </g>
+          ))}
       </svg>
+
+      {hasData && lastPoint && (
+        <div className="absolute left-1/2 top-2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground shadow-float">
+          <span className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+            Dernier
+          </span>
+          <span className="text-sm font-bold tabular-nums">
+            {formatK(entries[entries.length - 1][1])}
+          </span>
+        </div>
+      )}
+
       <div className="flex justify-between mt-2 px-1 text-[10px] text-muted-foreground font-medium tabular-nums">
         {entries.map(([m]) => (
           <span key={m}>{m.slice(5)}</span>

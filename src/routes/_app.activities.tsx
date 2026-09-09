@@ -12,6 +12,8 @@ import {
   Briefcase,
   Bell,
   User,
+  Activity,
+  Inbox,
 } from "lucide-react";
 import {
   useActivities,
@@ -184,11 +186,16 @@ export default function ActivitiesPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-end justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Activités</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {data ? `${data.meta.total} activités` : "Chargement…"}
-          </p>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline-flex h-11 w-11 rounded-xl gradient-brand items-center justify-center shadow-float shrink-0">
+            <Activity className="h-5 w-5 text-white" />
+          </span>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">Activités</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {data ? `${data.meta.total} activité${data.meta.total > 1 ? "s" : ""} au total` : "Chargement…"}
+            </p>
+          </div>
         </div>
         <NewActivityDialog />
       </div>
@@ -330,69 +337,72 @@ export default function ActivitiesPage() {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="text-center py-16 border-2 border-dashed border-border rounded-xl bg-card">
-          <p className="text-sm text-muted-foreground">
+          <span className="mx-auto h-12 w-12 rounded-2xl bg-muted grid place-items-center mb-3">
+            <Inbox className="h-6 w-6 text-muted-foreground" />
+          </span>
+          <p className="text-sm font-semibold text-foreground">Aucune activité trouvée</p>
+          <p className="text-sm text-muted-foreground mt-1">
             Aucune activité disponible avec les filtres sélectionnés.
           </p>
         </div>
       ) : (
-        <div className="card-elegant divide-y divide-border">
+        <div className="card-elegant overflow-hidden">
           {filteredItems.map((a) => (
             <div
               key={a.id}
-              className="px-4 py-3 flex items-start gap-4 hover:bg-muted/30 transition-colors group"
+              className="px-4 sm:px-6 py-4 flex items-start gap-3 sm:gap-4 hover:bg-muted/30 transition-colors border-b border-border last:border-b-0 group"
             >
-              <div className="shrink-0 mt-0.5">
+              <div className="mt-0.5 shrink-0">
                 <ActivityIcon type={a.type} />
               </div>
 
-              <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 overflow-hidden">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h4 className="font-semibold text-sm truncate" title={a.title}>
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-semibold text-sm text-foreground leading-snug truncate max-w-full" title={a.title}>
                     {a.title}
                   </h4>
                   <StatusBadge status={a.status} />
                   <PriorityDot priority={a.priority} />
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground overflow-hidden whitespace-nowrap">
-                  <span className="inline-flex items-center gap-1.5 text-foreground/80 font-medium shrink-0">
-                    <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
+
+                <div className="flex items-center gap-2 text-[13px] text-foreground/80 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 font-medium tabular-nums">
+                    <CalendarIcon className="h-3.5 w-3.5 text-primary/70 shrink-0" />
                     {new Date(a.scheduledAt).toLocaleString("fr-FR", {
                       dateStyle: "short",
                       timeStyle: "short",
                     })}
                   </span>
-                  <span className="shrink-0">•</span>
-                  <span className="font-semibold text-foreground/80 inline-flex items-center gap-1 truncate min-w-0">
-                    <Briefcase className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{a.clientName}</span>
+                  <span className="text-muted-foreground hidden xs:inline">·</span>
+                  <span className="inline-flex items-center gap-1.5 min-w-0">
+                    <Briefcase className="h-3.5 w-3.5 text-primary/70 shrink-0" />
+                    <span className="truncate font-medium">{a.clientName}</span>
+                  </span>
+                  <span className="text-muted-foreground hidden sm:inline">·</span>
+                  <span className="hidden sm:inline-flex items-center gap-1.5 text-muted-foreground">
+                    <User className="h-3.5 w-3.5" /> {a.ownerName}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="text-muted-foreground">Assigné à :</span>
-                  <span className="font-semibold text-foreground/80 inline-flex items-center gap-1">
-                    <User className="h-3 w-3" /> {a.ownerName}
-                  </span>
-                </div>
-                {(a.result || a.summary) &&
-                  (a.result ? (
-                    <p className="text-[11px] text-emerald-800 bg-emerald-50 inline-flex items-center px-2 py-0.5 rounded border border-emerald-200 truncate max-w-full w-fit">
-                      ✓ {a.result}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground border-l-2 border-primary/30 bg-muted/40 pl-3 py-1 pr-2 rounded-r-md truncate">
-                      {a.summary}
-                    </p>
-                  ))}
+
+                {a.result ? (
+                  <p className="text-[11px] sm:text-xs text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-400 inline-flex items-center px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-900 truncate max-w-full w-fit">
+                    <CheckCircle2 className="h-3.5 w-3.5 mr-1 shrink-0" /> {a.result}
+                  </p>
+                ) : a.summary ? (
+                  <p className="text-xs text-muted-foreground bg-muted/50 border-l-2 border-primary/40 pl-3 py-1.5 pr-3 rounded-r-md leading-relaxed truncate max-w-full">
+                    {a.summary}
+                  </p>
+                ) : null}
               </div>
 
-              <div className="flex flex-col items-end gap-1 shrink-0">
+              <div className="flex flex-col items-end gap-2 shrink-0">
                 <UserAvatar
                   photo={a.ownerPhoto}
                   name={a.ownerName}
-                  className="h-8 w-8"
+                  className="h-8 w-8 sm:h-9 sm:w-9"
                   fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[10px] font-semibold"
                 />
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   {a.status !== "terminé" ? (
                     <Button
                       variant="outline"
@@ -500,12 +510,13 @@ export default function ActivitiesPage() {
             </DialogHeader>
             <div className="py-4 space-y-4">
               <div>
-                <h3 className="font-semibold text-lg">{selectedAct.title}</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-lg text-foreground">{selectedAct.title}</h3>
+                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                  <ActivityIcon type={selectedAct.type} size="sm" />
                   {selectedAct.clientName} • par {selectedAct.ownerName}
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-4 bg-muted/50 p-4 rounded-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/50 p-4 rounded-xl">
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wider">Type</div>
                   <div className="font-medium mt-1 flex items-center gap-2">
@@ -634,7 +645,7 @@ function EditActivityDialog({ activity, onClose }: { activity: ActivityDto; onCl
             <Label>Titre</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-2" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>Date</Label>
               <Input
@@ -654,7 +665,7 @@ function EditActivityDialog({ activity, onClose }: { activity: ActivityDto; onCl
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>Statut</Label>
               <select
@@ -820,7 +831,6 @@ function WorkflowDialog({ parent, onClose }: { parent: ActivityDto; onClose: () 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <span className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400/20 to-primary/15 border border-amber-400/30 flex items-center justify-center text-lg shrink-0">
-              🎉
             </span>
             Activité terminée !
           </DialogTitle>
@@ -841,7 +851,7 @@ function WorkflowDialog({ parent, onClose }: { parent: ActivityDto; onClose: () 
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Que souhaitez-vous planifier ensuite ?
               </h4>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {WORKFLOW_ACTIONS.map((a) => (
                   <button
                     key={a.id}
@@ -880,7 +890,7 @@ function WorkflowDialog({ parent, onClose }: { parent: ActivityDto; onClose: () 
                   className="mt-1.5"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs font-semibold text-foreground/80">Date</Label>
                   <input

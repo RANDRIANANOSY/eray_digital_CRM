@@ -39,9 +39,9 @@ const roleLabel: Record<UserRole, string> = {
   commercial: "Commercial",
 };
 const roleColor: Record<UserRole, string> = {
-  admin: "bg-violet-500/10 text-violet-700 border-violet-200",
-  manager: "bg-primary/10 text-primary border-primary/20",
-  commercial: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
+  admin: "bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white border-transparent shadow-sm",
+  manager: "bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-transparent shadow-sm",
+  commercial: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-transparent shadow-sm",
 };
 const statusLabel: Record<string, string> = {
   active: "Actif",
@@ -199,11 +199,25 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-end justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Utilisateurs</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {users ? `${users.length} membres` : "Chargement…"}
-          </p>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline-flex h-11 w-11 rounded-xl gradient-brand items-center justify-center shadow-float shrink-0">
+            <UsersIcon className="h-5 w-5 text-white" />
+          </span>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">Utilisateurs</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {users ? (
+                <>
+                  <span className="font-semibold text-primary">{users.length}</span> membres —{" "}
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                    {users.filter((u) => u.status === "active").length} actifs
+                  </span>
+                </>
+              ) : (
+                "Chargement…"
+              )}
+            </p>
+          </div>
         </div>
 
         <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
@@ -220,7 +234,7 @@ export default function UsersPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="firstName">Prénom</Label>
                   <Input
@@ -391,27 +405,27 @@ export default function UsersPage() {
           ))}
         </div>
       ) : (
-        <div className="card-elegant overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="card-elegant overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="text-left font-semibold px-5 py-3">Utilisateur</th>
                 <th className="text-left font-semibold px-2 py-3">Rôle</th>
-                <th className="text-left font-semibold px-2 py-3">Équipe</th>
+                <th className="hidden md:table-cell text-left font-semibold px-2 py-3">Équipe</th>
                 <th className="text-left font-semibold px-2 py-3">Statut</th>
                 <th className="text-right font-semibold px-5 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {paginatedUsers.map((u) => (
-                <tr key={u.id} className="hover:bg-muted/30">
+                <tr key={u.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       <UserAvatar
                         photo={u.photo}
                         name={u.fullName}
                         className="h-9 w-9"
-                        fallbackClassName="bg-primary/10 text-primary text-[11px] font-semibold"
+                        fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[11px] font-semibold"
                       />
                       <div>
                         <div className="font-semibold text-foreground">{u.fullName}</div>
@@ -421,53 +435,65 @@ export default function UsersPage() {
                   </td>
                   <td className="px-2 py-3.5">
                     <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${roleColor[u.role]}`}
+                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border shadow-sm ${roleColor[u.role]}`}
                     >
                       {roleLabel[u.role]}
                     </span>
                   </td>
-                  <td className="px-2 py-3.5 text-muted-foreground">{u.team || "—"}</td>
+                  <td className="hidden md:table-cell px-2 py-3.5">
+                    {u.team ? (
+                      <span className="text-xs text-foreground/80 font-medium bg-muted/60 px-2.5 py-1 rounded-md">
+                        {u.team}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
                   <td className="px-2 py-3.5">
                     <span className={statusBadgeClass[u.status]}>{statusLabel[u.status]}</span>
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => {
                           setSelectedUser(u);
                           setDialogType("details");
                         }}
-                        className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        className="p-2 rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-400 hover:bg-violet-500 hover:text-white transition-colors disabled:opacity-40 disabled:pointer-events-none"
                         title="Voir les détails"
                         data-cy="user-details-btn"
                         disabled={togglingId !== null}
                       >
-                        <Eye className="h-4.5 w-4.5" />
+                        <Eye className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => {
                           setSelectedUser(u);
                           setDialogType("edit");
                         }}
-                        className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors disabled:opacity-40 disabled:pointer-events-none"
                         title="Modifier"
                         data-cy="user-edit-btn"
                         disabled={togglingId !== null}
                       >
-                        <Edit className="h-4.5 w-4.5" />
+                        <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleResetPassword(u)}
-                        className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-white transition-colors disabled:opacity-40 disabled:pointer-events-none"
                         title="Réinitialiser le mot de passe"
                         disabled={togglingId !== null}
                         data-cy="user-reset-password-btn"
                       >
-                        <KeyRound className="h-4.5 w-4.5" />
+                        <KeyRound className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleToggleStatus(u)}
-                        className="p-1.5 hover:bg-muted rounded text-foreground/70 hover:text-foreground transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                        className={`p-2 rounded-lg transition-colors disabled:opacity-30 disabled:pointer-events-none ${
+                          u.status === "active"
+                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500 hover:text-white"
+                            : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white"
+                        }`}
                         title={
                           me && u.id === me.id && u.status === "active"
                             ? "Vous ne pouvez pas désactiver votre propre compte"
@@ -502,7 +528,7 @@ export default function UsersPage() {
                             />
                           </svg>
                         ) : (
-                          <Power className="h-4.5 w-4.5" />
+                          <Power className="h-4 w-4" />
                         )}
                       </button>
                     </div>
@@ -514,7 +540,7 @@ export default function UsersPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-4 px-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 mt-4 px-2">
         <div className="text-xs text-muted-foreground font-medium">
           Affichage {filteredUsers.length > 0 ? (activePage - 1) * ITEMS_PER_PAGE + 1 : 0}–
           {Math.min(activePage * ITEMS_PER_PAGE, filteredUsers.length)} sur {filteredUsers.length}
@@ -548,22 +574,31 @@ export default function UsersPage() {
               <DialogTitle>Détails du membre</DialogTitle>
             </DialogHeader>
             <div className="py-4 space-y-4">
-              <div className="flex items-center gap-4">
-                <UserAvatar
-                  photo={selectedUser.photo}
-                  name={selectedUser.fullName}
-                  className="h-16 w-16"
-                  fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-lg font-bold"
-                />
-                <div>
-                  <h3 className="font-semibold text-lg">{selectedUser.fullName}</h3>
+              <div className="flex items-center gap-4 sm:flex-row flex-col sm:items-center items-start">
+                <div className="relative w-fit shrink-0">
+                  <div className="absolute -inset-1 rounded-full bg-gradient-brand opacity-60 blur-sm" />
+                  <UserAvatar
+                    photo={selectedUser.photo}
+                    name={selectedUser.fullName}
+                    className="relative h-16 w-16 ring-4 ring-background"
+                    fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-lg font-bold"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-lg text-foreground">{selectedUser.fullName}</h3>
                   <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4 mt-4 bg-muted/50 p-4 rounded-xl">
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wider">Rôle</div>
-                  <div className="font-medium mt-1">{roleLabel[selectedUser.role]}</div>
+                  <div className="mt-1">
+                    <span
+                      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full border ${roleColor[selectedUser.role]}`}
+                    >
+                      {roleLabel[selectedUser.role]}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -575,7 +610,11 @@ export default function UsersPage() {
                   <div className="text-xs text-muted-foreground uppercase tracking-wider">
                     Statut
                   </div>
-                  <div className="font-medium mt-1">{statusLabel[selectedUser.status]}</div>
+                  <div className="mt-1">
+                    <span className={statusBadgeClass[selectedUser.status]}>
+                      {statusLabel[selectedUser.status]}
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -587,7 +626,17 @@ export default function UsersPage() {
                   <div className="text-xs text-muted-foreground uppercase tracking-wider">
                     E-mail vérifié
                   </div>
-                  <div className="font-medium mt-1">{selectedUser.isVerified ? "Oui" : "Non"}</div>
+                  <div className="font-medium mt-1 flex items-center gap-2">
+                    {selectedUser.isVerified ? (
+                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full border bg-green-500/10 text-green-600 dark:text-green-400 border-green-200">
+                        Vérifié
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full border bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200">
+                        Non vérifié
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -697,18 +746,25 @@ function StatCard({
   tone: string;
 }) {
   const tones: Record<string, string> = {
-    brand: "bg-primary/10 text-primary",
-    violet: "bg-violet-500/10 text-violet-600",
-    warning: "bg-amber-500/10 text-amber-600",
+    brand: "bg-gradient-to-br from-blue-500 to-indigo-600",
+    violet: "bg-gradient-to-br from-purple-500 to-fuchsia-600",
+    warning: "bg-gradient-to-br from-amber-400 to-orange-500",
+  };
+  const glows: Record<string, string> = {
+    brand: "group-hover:shadow-[0_8px_24px_-6px_oklch(0.55_0.22_265/0.4)]",
+    violet: "group-hover:shadow-[0_8px_24px_-6px_oklch(0.52_0.24_290/0.4)]",
+    warning: "group-hover:shadow-[0_8px_24px_-6px_oklch(0.78_0.15_75/0.4)]",
   };
   return (
-    <div className="card-elegant p-5 flex items-center gap-4">
-      <div className={`h-11 w-11 rounded-xl grid place-items-center ${tones[tone]}`}>
-        <Icon className="h-5 w-5" />
+    <div className="card-elegant group p-5 flex items-center gap-4 hover-glow">
+      <div
+        className={`h-12 w-12 rounded-xl grid place-items-center text-white shadow-float transition-transform duration-200 group-hover:scale-110 ${tones[tone]} ${glows[tone]}`}
+      >
+        <Icon className="h-5.5 w-5.5" />
       </div>
-      <div>
-        <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="text-2xl font-bold font-display">{value}</div>
+      <div className="min-w-0">
+        <div className="text-xs font-medium text-muted-foreground truncate">{label}</div>
+        <div className="text-2xl font-bold font-display text-foreground tabular-nums">{value}</div>
       </div>
     </div>
   );
