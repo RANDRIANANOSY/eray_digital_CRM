@@ -322,6 +322,12 @@ export interface MeUpdatePayload {
   team?: string | null;
 }
 
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export interface UserInvitePayload {
   firstName: string;
   lastName: string;
@@ -354,4 +360,95 @@ export interface NotificationListFilters {
   page?: number;
   perPage?: number;
   dir?: "asc" | "desc";
+}
+
+export type InvoiceStatus = "brouillon" | "envoyee" | "payee" | "en_retard" | "annulee";
+
+export const INVOICE_STATUSES: InvoiceStatus[] = [
+  "brouillon",
+  "envoyee",
+  "payee",
+  "en_retard",
+  "annulee",
+];
+
+export interface InvoiceItemDto {
+  id: number | null;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
+export interface InvoiceDto {
+  id: number;
+  invoiceNumber: string;
+  clientId: number;
+  clientName: string;
+  company: string | null;
+  opportunityId: number | null;
+  opportunityName: string | null;
+  ownerId: number;
+  ownerName: string;
+  ownerPhoto: string | null;
+  issuedAt: string;
+  dueAt: string;
+  status: InvoiceStatus;
+  subtotal: number;
+  taxRate: number;
+  taxAmount: number;
+  total: number;
+  notes: string | null;
+  items: InvoiceItemDto[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvoiceItemPayload {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface InvoicePayload {
+  clientId: number;
+  opportunityId?: number | null;
+  issuedAt: string;
+  dueAt: string;
+  status: InvoiceStatus;
+  taxRate: number;
+  notes?: string | null;
+  items: InvoiceItemPayload[];
+}
+
+export interface InvoiceListFilters {
+  q?: string;
+  status?: InvoiceStatus[];
+  clientId?: number;
+  opportunityId?: number;
+  owner?: number;
+  from?: string;
+  to?: string;
+  sort?: "invoiceNumber" | "issuedAt" | "dueAt" | "total" | "status" | "createdAt";
+  dir?: "asc" | "desc";
+  page?: number;
+  perPage?: number;
+}
+
+export interface InvoiceListSummary {
+  statuses: Partial<Record<InvoiceStatus, number>>;
+  total: number;
+}
+
+export interface InvoiceListResult {
+  items: InvoiceDto[];
+  meta: PageMeta;
+  summary: InvoiceListSummary;
+}
+
+export interface ImportResult {
+  imported_count: number;
+  skipped_count: number;
+  message: string;
+  errors: string[];
 }

@@ -8,7 +8,10 @@ import {
   Calendar as CalendarIcon,
   Search,
   X,
+  FileText,
 } from "lucide-react";
+import { useNavigate } from "react-router";
+
 import { OPPORTUNITY_STAGES } from "@/lib/api/types";
 import type { OpportunityDto, OpportunityStage } from "@/lib/api/types";
 import {
@@ -16,6 +19,7 @@ import {
   useOpportunities,
   useUpdateOpportunity,
 } from "@/hooks/api/useOpportunities";
+import { useCreateInvoiceFromOpportunity } from "@/hooks/api/useInvoices";
 import { useUsers } from "@/hooks/api/useUsers";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
@@ -65,6 +69,18 @@ export default function PipelinePage() {
   });
   const updateOpportunity = useUpdateOpportunity();
   const deleteOpportunity = useDeleteOpportunity();
+  const createInvoiceFromOpportunity = useCreateInvoiceFromOpportunity();
+  const navigate = useNavigate();
+
+  const handleInvoice = async (deal: OpportunityDto) => {
+    try {
+      const invoice = await createInvoiceFromOpportunity.mutateAsync(deal.id);
+      toast.success("Facture générée depuis la vente");
+      navigate(`/invoices/${invoice.id}`);
+    } catch (err) {
+      toast.error("Impossible de générer la facture", { description: errorMessage(err) });
+    }
+  };
 
   const filteredDeals = useMemo(() => {
     const items = data?.items ?? [];
@@ -300,18 +316,33 @@ export default function PipelinePage() {
                             </div>
                           )}
                         </div>
-                        <div className="mt-2.5 flex items-center justify-between">
+                        <div className="mt-2.5 flex items-center justify-between gap-2">
                           <UserAvatar
                             photo={d.ownerPhoto}
                             name={d.ownerName}
                             className="h-6 w-6"
                             fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[9px] font-semibold"
                           />
-                          {d.nextAction && (
-                            <span className="text-[10px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded truncate max-w-[120px]">
-                              {d.nextAction}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            {d.nextAction && (
+                              <span className="text-[10px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded truncate max-w-[110px]">
+                                {d.nextAction}
+                              </span>
+                            )}
+                            {d.isWon && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleInvoice(d);
+                                }}
+                                disabled={createInvoiceFromOpportunity.isPending}
+                                title="Générer la facture"
+                                className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 border border-emerald-200 px-2 py-1 rounded-md inline-flex items-center gap-1 transition-colors"
+                              >
+                                <FileText className="h-3 w-3" /> Facturer
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -372,13 +403,25 @@ export default function PipelinePage() {
                     {d.closeDate ? new Date(d.closeDate).toLocaleDateString("fr-FR") : "—"}
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <button
-                      onClick={() => handleDelete(d)}
-                      className="text-muted-foreground hover:text-destructive p-1"
-                      title="Supprimer"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      {d.isWon && (
+                        <button
+                          onClick={() => handleInvoice(d)}
+                          disabled={createInvoiceFromOpportunity.isPending}
+                          className="text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 border border-emerald-200 px-2 py-1 rounded-md inline-flex items-center gap-1 transition-colors"
+                          title="Générer la facture"
+                        >
+                          <FileText className="h-3 w-3" /> Facturer
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(d)}
+                        className="text-muted-foreground hover:text-destructive p-1"
+                        title="Supprimer"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

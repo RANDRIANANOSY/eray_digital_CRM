@@ -18,8 +18,6 @@ interface AuthContextType {
   role: RoleKey;
   isRole: (...roles: RoleKey[]) => boolean;
   canEditActivity: (activityOrOwner: string | { owner?: string }) => boolean;
-  canManageUsers: boolean;
-  canAccessSettings: boolean;
   refreshUser: () => void;
 }
 
@@ -69,8 +67,6 @@ const EMPTY_AUTH: AuthContextType = {
   role: "commercial",
   isRole: () => false,
   canEditActivity: () => false,
-  canManageUsers: false,
-  canAccessSettings: false,
   refreshUser: () => {},
 };
 
@@ -100,8 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     role: user.role,
     isRole,
     canEditActivity,
-    canManageUsers: user.role === "admin" || user.role === "manager",
-    canAccessSettings: user.role === "admin",
     refreshUser,
   };
 

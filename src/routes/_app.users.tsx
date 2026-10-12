@@ -41,7 +41,8 @@ const roleLabel: Record<UserRole, string> = {
 const roleColor: Record<UserRole, string> = {
   admin: "bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white border-transparent shadow-sm",
   manager: "bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-transparent shadow-sm",
-  commercial: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-transparent shadow-sm",
+  commercial:
+    "bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-transparent shadow-sm",
 };
 const statusLabel: Record<string, string> = {
   active: "Actif",

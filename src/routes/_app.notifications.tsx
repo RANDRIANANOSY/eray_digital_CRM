@@ -54,7 +54,8 @@ export default function NotificationsPage() {
           variant="outline"
           onClick={() =>
             markAllRead.mutate(undefined, {
-              onSuccess: () => toast.success("Toutes les notifications ont été marquées comme lues"),
+              onSuccess: () =>
+                toast.success("Toutes les notifications ont été marquées comme lues"),
             })
           }
         >

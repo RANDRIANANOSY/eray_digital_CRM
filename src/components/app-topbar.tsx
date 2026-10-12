@@ -117,7 +117,7 @@ export function AppTopbar({ onMobileMenuClick }: AppTopbarProps) {
     <header className="sticky top-0 z-20 h-16 bg-card/85 backdrop-blur-xl border-b border-border shadow-xs transition-colors">
       <div className="h-full px-4 lg:px-6 flex items-center gap-3">
         <button
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors md:hidden"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground hover:bg-muted transition-colors lg:hidden"
           onClick={onMobileMenuClick}
           aria-label="Ouvrir le menu"
         >

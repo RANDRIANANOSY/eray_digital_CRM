@@ -1,19 +1,25 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import RootLayout from "./routes/root.tsx";
 import AppLayout from "./routes/_app.tsx";
-import Login from "./routes/login.tsx";
-import Signup from "./routes/signup.tsx";
-import ResetPassword from "./routes/reset-password.tsx";
-import Dashboard from "./routes/_app.index.tsx";
-import Clients from "./routes/_app.clients.tsx";
-import ClientDetail from "./routes/_app.clients.$id.tsx";
-import Activities from "./routes/_app.activities.tsx";
-import Calendar from "./routes/_app.calendar.tsx";
-import Pipeline from "./routes/_app.pipeline.tsx";
-import Projects from "./routes/_app.projects.tsx";
-import Users from "./routes/_app.users.tsx";
-import Settings from "./routes/_app.settings.tsx";
-import Notifications from "./routes/_app.notifications.tsx";
+import { PageLoader } from "./components/page-loader.tsx";
+
+const Login = lazy(() => import("./routes/login.tsx"));
+const Signup = lazy(() => import("./routes/signup.tsx"));
+const ResetPassword = lazy(() => import("./routes/reset-password.tsx"));
+const Dashboard = lazy(() => import("./routes/_app.index.tsx"));
+const Clients = lazy(() => import("./routes/_app.clients.tsx"));
+const ClientDetail = lazy(() => import("./routes/_app.clients.$id.tsx"));
+const Activities = lazy(() => import("./routes/_app.activities.tsx"));
+const Calendar = lazy(() => import("./routes/_app.calendar.tsx"));
+const Pipeline = lazy(() => import("./routes/_app.pipeline.tsx"));
+const Projects = lazy(() => import("./routes/_app.projects.tsx"));
+const Invoices = lazy(() => import("./routes/_app.invoices.tsx"));
+const InvoiceDetail = lazy(() => import("./routes/_app.invoices.$id.tsx"));
+const Users = lazy(() => import("./routes/_app.users.tsx"));
+const Settings = lazy(() => import("./routes/_app.settings.tsx"));
+const Notifications = lazy(() => import("./routes/_app.notifications.tsx"));
+const Reminders = lazy(() => import("./routes/_app.reminders.tsx"));
 
 const routes = [
   {
@@ -64,12 +70,24 @@ const routes = [
             element: <Projects />,
           },
           {
+            path: "invoices",
+            element: <Invoices />,
+          },
+          {
+            path: "invoices/:id",
+            element: <InvoiceDetail />,
+          },
+          {
             path: "users",
             element: <Users />,
           },
           {
             path: "notifications",
             element: <Notifications />,
+          },
+          {
+            path: "reminders",
+            element: <Reminders />,
           },
           {
             path: "settings",
@@ -87,5 +105,9 @@ const routes = [
 const router = createBrowserRouter(routes);
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <RouterProvider router={router} />
+    </Suspense>
+  );
 }

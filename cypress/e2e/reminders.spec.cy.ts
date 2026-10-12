@@ -14,10 +14,7 @@ describe("Reminders Page", () => {
 
   it("should mark an activity as completed from reminders list", () => {
     cy.contains("Appel de Qualification").should("be.visible");
-    cy.contains("Appel de Qualification")
-      .closest(".card-elegant")
-      .find("button")
-      .click();
+    cy.contains("Appel de Qualification").closest(".card-elegant").find("button").click();
     cy.contains("Tâche terminée !").should("exist");
   });
 });

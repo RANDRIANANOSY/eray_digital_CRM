@@ -1,5 +1,11 @@
 import { http } from "./http";
-import type { LoginPayload, LoginResult, RegisterPayload, UserDto } from "./types";
+import type {
+  ChangePasswordPayload,
+  LoginPayload,
+  LoginResult,
+  RegisterPayload,
+  UserDto,
+} from "./types";
 
 export const authApi = {
   login: (payload: LoginPayload) => http.post<LoginResult>("/api/auth/login", payload),
@@ -8,4 +14,5 @@ export const authApi = {
   requestPasswordReset: (email: string) => http.post<null>("/api/auth/password-reset", { email }),
   confirmPasswordReset: (token: string, password: string) =>
     http.post<null>("/api/auth/password-reset/confirm", { token, password }),
+  changePassword: (payload: ChangePasswordPayload) => http.patch<null>("/api/me/password", payload),
 };

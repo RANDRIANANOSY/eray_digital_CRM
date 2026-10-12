@@ -13,12 +13,15 @@ import {
   Calendar,
   Mail,
   Trophy,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { useMe, useUpdateMe, useUploadAvatar, useRemoveAvatar } from "@/hooks/api/useMe";
+import { useChangePassword } from "@/hooks/api/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { authApi, ApiError } from "@/lib/api";
 import { toast } from "sonner";
@@ -375,10 +378,7 @@ function NotificationsSection() {
         {items.map((n, i) => {
           const Icon = icons[i] ?? Bell;
           return (
-            <li
-              key={n.label}
-              className="py-4 flex items-center justify-between gap-4 group"
-            >
+            <li key={n.label} className="py-4 flex items-center justify-between gap-4 group">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="h-9 w-9 rounded-lg bg-muted text-muted-foreground grid place-items-center shrink-0 transition-colors group-hover:bg-primary/10 group-hover:text-primary">
                   <Icon className="h-4 w-4" />
@@ -440,7 +440,11 @@ function DisplaySection() {
           {[
             { id: "Clair", label: "Clair", swatch: "bg-white border border-border" },
             { id: "Sombre", label: "Sombre", swatch: "bg-slate-900 border border-slate-700" },
-            { id: "Système", label: "Système", swatch: "bg-gradient-to-r from-slate-900 to-slate-900 border border-border" },
+            {
+              id: "Système",
+              label: "Système",
+              swatch: "bg-gradient-to-r from-slate-900 to-slate-900 border border-border",
+            },
           ].map((t) => (
             <button
               key={t.id}
@@ -456,7 +460,13 @@ function DisplaySection() {
               {theme === t.id && (
                 <span className="absolute top-2 right-2 h-4 w-4 rounded-full bg-primary text-primary-foreground grid place-items-center">
                   <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none">
-                    <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path
+                      d="M2 6l2.5 2.5L10 3.5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </span>
               )}
@@ -482,6 +492,11 @@ function GeneralSection() {
 
 function SecuritySection() {
   const { data: me } = useMe();
+  const changePassword = useChangePassword();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
   const [sending, setSending] = useState(false);
 
   const handleSendReset = async () => {
@@ -501,23 +516,140 @@ function SecuritySection() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("Champs incomplets", {
+        description: "Renseignez tous les champs du formulaire.",
+      });
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("Mot de passe trop court", {
+        description: "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+      });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Mots de passe différents", {
+        description: "La confirmation ne correspond pas au nouveau mot de passe.",
+      });
+      return;
+    }
+
+    try {
+      await changePassword.mutateAsync({ currentPassword, newPassword, confirmPassword });
+      toast.success("Mot de passe mis à jour");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      toast.error("Changement impossible", {
+        description: err instanceof ApiError ? err.message : "Une erreur est survenue.",
+      });
+    }
+  };
+
   return (
     <Card title="Sécurité" desc="Gérez le mot de passe et la sécurité de votre compte.">
       <div className="space-y-6">
+        <div className="p-4 rounded-xl bg-muted/40 border border-border/60">
+          <div className="flex items-start gap-4">
+            <span className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
+              <Lock className="h-4.5 w-4.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-sm font-semibold">Changer le mot de passe</h4>
+              <p className="text-xs text-muted-foreground mt-1">
+                Choisissez un nouveau mot de passe pour votre compte.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                <div className="sm:col-span-2">
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Mot de passe actuel
+                  </label>
+                  <div className="relative mt-1.5">
+                    <Input
+                      type={showPasswords ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      autoComplete="current-password"
+                      data-cy="current-password"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Nouveau mot de passe
+                  </label>
+                  <div className="relative mt-1.5">
+                    <Input
+                      type={showPasswords ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      autoComplete="new-password"
+                      data-cy="new-password"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Confirmer le mot de passe
+                  </label>
+                  <div className="relative mt-1.5">
+                    <Input
+                      type={showPasswords ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                      data-cy="confirm-password"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 mt-4">
+                <Button
+                  onClick={handleChangePassword}
+                  disabled={changePassword.isPending}
+                  className="gradient-brand text-white border-0"
+                  data-cy="change-password-submit"
+                >
+                  {changePassword.isPending ? "Mise à jour…" : "Mettre à jour le mot de passe"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPasswords((v) => !v)}
+                >
+                  {showPasswords ? (
+                    <EyeOff className="h-3.5 w-3.5 mr-1.5" />
+                  ) : (
+                    <Eye className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  {showPasswords ? "Masquer" : "Afficher"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/40 border border-border/60">
           <span className="h-10 w-10 rounded-lg bg-primary/10 text-primary grid place-items-center shrink-0">
-            <Lock className="h-4.5 w-4.5" />
+            <Mail className="h-4.5 w-4.5" />
           </span>
           <div className="min-w-0">
-            <h4 className="text-sm font-semibold">Mot de passe</h4>
+            <h4 className="text-sm font-semibold">Mot de passe oublié</h4>
             <p className="text-xs text-muted-foreground mt-1">
-              Aucun endpoint de changement de mot de passe en session n'existe côté backend — utilisez
-              le lien de réinitialisation par e-mail.
+              Recevez un lien de réinitialisation par e-mail si vous ne connaissez plus votre mot de
+              passe.
             </p>
             <Button
               onClick={handleSendReset}
               disabled={sending || !me}
-              className="mt-3 gradient-brand text-white border-0"
+              variant="outline"
+              className="mt-3"
             >
               {sending ? "Envoi…" : "Recevoir un lien de réinitialisation"}
             </Button>

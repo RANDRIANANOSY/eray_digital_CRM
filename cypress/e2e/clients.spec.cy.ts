@@ -45,7 +45,13 @@ describe("Clients Page", () => {
     projects: [],
     clientEvents: [],
     members: [
-      { id: 1, name: "Antoine Roy", role: "Commercial", email: "antoine@eray.com", status: "Actif" },
+      {
+        id: 1,
+        name: "Antoine Roy",
+        role: "Commercial",
+        email: "antoine@eray.com",
+        status: "Actif",
+      },
       { id: 3, name: "Léa Martin", role: "Manager", email: "lea@eray.com", status: "Actif" },
     ],
   };

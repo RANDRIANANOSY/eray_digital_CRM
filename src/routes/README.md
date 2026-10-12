@@ -1,21 +1,21 @@
 # Routes
 
-TanStack Start uses **file-based routing**. Every `.tsx` file in this directory
-defines a route. Do **not** create `src/pages/`, `src/routes/_app/index.tsx`, or
-`app/layout.tsx` — those are Next.js / Remix conventions. The only root layout
-is `src/routes/__root.tsx`.
+L'application utilise **React Router v7** avec une configuration déclarative.
+
+Le routage est défini dans `src/App.tsx` (`createBrowserRouter`).
+Les composants de pages vivent dans ce dossier `src/routes/`,
+et les layouts sont `src/routes/root.tsx` (racine) et `src/routes/_app.tsx`
+(layout authentifié : sidebar + topbar).
 
 ## Conventions
 
-| File                     | URL                                                     |
-| ------------------------ | ------------------------------------------------------- |
-| `index.tsx`              | `/`                                                     |
-| `about.tsx`              | `/about`                                                |
-| `users/index.tsx`        | `/users`                                                |
-| `users/$id.tsx`          | `/users/:id` (dynamic — bare `$`, no curly braces)      |
-| `posts/{-$category}.tsx` | `/posts/:category?` (optional segment)                  |
-| `files/$.tsx`            | `/files/*` (splat — read via `_splat` param, never `*`) |
-| `_layout.tsx`            | layout route (renders children via `<Outlet />`)        |
-| `__root.tsx`             | app shell — wraps every page; preserve `<Outlet />`     |
+| Fichier                 | URL                    |
+| ----------------------- | ---------------------- |
+| `_app.index.tsx`        | `/`                    |
+| `_app.clients.tsx`      | `/clients`             |
+| `_app.clients.$id.tsx`  | `/clients/:id`         |
+| `_app.reminders.tsx`    | `/reminders`           |
+| `_layout.tsx`           | layout route           |
 
-`routeTree.gen.ts` is auto-generated. Don't edit it by hand.
+Ajouter une route = créer un fichier dans `src/routes/` **et** le déclarer
+dans `src/App.tsx` ainsi que dans la navigation `src/components/app-sidebar.tsx`.

@@ -5,7 +5,6 @@ import {
   UserCheck,
   Trophy,
   AlertTriangle,
-  DollarSign,
   PenLine,
   Target,
   AlertCircle,
@@ -35,12 +34,36 @@ const toneMap = {
   destructive: "text-rose-600 bg-rose-500/10",
 } as const;
 
+function MgaIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      role="img"
+      aria-label="Ariary malgache (MGA)"
+      fill="currentColor"
+    >
+      <text
+        x="12"
+        y="15.5"
+        textAnchor="middle"
+        fontSize="9"
+        fontWeight="800"
+        letterSpacing="-0.4"
+        fontFamily="inherit"
+      >
+        MGA
+      </text>
+    </svg>
+  );
+}
+
 const kpiIcons = {
   prospects: Users,
   clients: UserCheck,
   won: Trophy,
   lost: AlertTriangle,
-  pipeline: DollarSign,
+  pipeline: MgaIcon,
   signed: PenLine,
   conversion: Target,
 } as const;
@@ -170,22 +193,44 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-end justify-between flex-wrap gap-4">
-        <div>
-          <div className="text-sm text-muted-foreground">Aujourd'hui</div>
-          <h1 className="text-2xl lg:text-3xl font-bold mt-1">Bonjour {me?.firstName ?? "…"} 👋</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Voici la synthèse de votre activité commerciale.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            Cette semaine
-          </Button>
-          <Button variant="outline" size="sm">
-            Exporter
-          </Button>
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/15 animate-fade-in-up">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-12 w-48 h-48 bg-indigo-400/20 rounded-full blur-xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col justify-end min-h-[140px] p-6 sm:p-8 lg:p-10">
+          <div className="max-w-xl space-y-3">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-display tracking-tight text-white">
+              Bonjour {me?.firstName ?? "..."} 👋
+            </h1>
+            <p className="text-sm sm:text-base text-blue-100/90 leading-relaxed font-normal">
+              Vous avez{" "}
+              <span className="font-semibold text-white">
+                {todayTasks?.meta.total ?? 0} nouvelles tâches
+              </span>{" "}
+              et{" "}
+              <span className="font-semibold text-white">
+                {appointments?.meta.total ?? 0} rendez-vous
+              </span>{" "}
+              aujourd'hui. C'est une journée productive qui commence !
+            </p>
+            <div className="pt-2 flex items-center gap-3">
+              <Button
+                asChild
+                className="bg-white text-blue-600 hover:bg-blue-50 font-semibold shadow-md hover:shadow-lg transition-all rounded-xl px-5 h-10 text-sm border-0 cursor-pointer"
+              >
+                <Link to="/activities">Consulter mes tâches</Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-white/30 text-white hover:bg-white/15 hover:text-white rounded-xl h-10 px-4 text-sm backdrop-blur-sm"
+                asChild
+              >
+                <Link to="/pipeline">Voir le pipeline</Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -535,10 +580,7 @@ function RevenueChart({ series }: { series: Record<string, number> }) {
   const linePath = catmullRom();
   const areaPath = `${linePath} L ${width} ${height} L 0 ${height} Z`;
   const lineLength = points.reduce(
-    (acc, p, i) =>
-      i === 0
-        ? acc
-        : acc + Math.hypot(p.x - points[i - 1].x, p.y - points[i - 1].y),
+    (acc, p, i) => (i === 0 ? acc : acc + Math.hypot(p.x - points[i - 1].x, p.y - points[i - 1].y)),
     0,
   );
   const lastPoint = points[points.length - 1];
@@ -600,11 +642,7 @@ function RevenueChart({ series }: { series: Record<string, number> }) {
                 cx={p.x}
                 cy={p.y}
                 r={i === points.length - 1 ? 1.7 : 1.1}
-                fill={
-                  i === points.length - 1
-                    ? "oklch(0.55 0.22 265)"
-                    : "oklch(1 0 0)"
-                }
+                fill={i === points.length - 1 ? "oklch(0.55 0.22 265)" : "oklch(1 0 0)"}
                 stroke="oklch(0.55 0.22 265)"
                 strokeWidth="0.8"
               />

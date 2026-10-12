@@ -96,8 +96,29 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return envelope.data;
 }
 
+async function requestBlob(path: string): Promise<Blob> {
+  const csrf = getCsrfToken();
+  const headers: Record<string, string> = {};
+  if (csrf) {
+    headers["X-CSRF-Token"] = csrf;
+  }
+
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: "GET",
+    headers,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new ApiError(response.status, "Erreur lors du téléchargement.");
+  }
+
+  return response.blob();
+}
+
 export const http = {
   get: <T>(path: string) => request<T>(path, { method: "GET" }),
+  getBlob: (path: string) => requestBlob(path),
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: "POST",

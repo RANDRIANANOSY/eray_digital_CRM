@@ -6,7 +6,9 @@ import {
   Calendar,
   KanbanSquare,
   FolderKanban,
+  FileText,
   UserCog,
+  Bell,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -33,6 +35,8 @@ const nav = [
   { to: "/calendar", label: "Calendrier", icon: Calendar },
   { to: "/pipeline", label: "Pipeline commercial", icon: KanbanSquare },
   { to: "/projects", label: "Projets", icon: FolderKanban },
+  { to: "/invoices", label: "Factures", icon: FileText },
+  { to: "/reminders", label: "Rappels", icon: Bell },
   { to: "/users", label: "Utilisateurs", icon: UserCog, roles: ["admin", "manager"] },
   { to: "/settings", label: "Paramètres", icon: Settings },
 ] as const;

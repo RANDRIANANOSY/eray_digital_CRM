@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { authApi } from "@/lib/api";
+import type { ChangePasswordPayload } from "@/lib/api/types";
 import { clearSession, getRole, isAuthenticated } from "@/lib/api/auth-storage";
 
 export function useLogin() {
@@ -20,6 +21,12 @@ export function useConfirmPasswordReset() {
   return useMutation({
     mutationFn: ({ token, password }: { token: string; password: string }) =>
       authApi.confirmPasswordReset(token, password),
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (payload: ChangePasswordPayload) => authApi.changePassword(payload),
   });
 }
 

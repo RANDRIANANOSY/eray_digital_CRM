@@ -16,6 +16,7 @@ declare global {
         url: string,
         seedData: Record<string, unknown>,
         auth?: { token: string; role: string; name: string },
+        now?: number | string | Date,
       ): Chainable<AUTWindow>;
 
       /**
@@ -687,11 +688,18 @@ Cypress.Commands.add("mockAllApi", (seedData?: Record<string, unknown>) => {
 
   // ── Users ─────────────────────────────────────────────────────────────────
   const seededMembers = Array.isArray(seedData?.members)
-    ? (seedData.members as Record<string, any>[]).map((item, index) => ({
+    ? (seedData.members as Record<string, unknown>[]).map((item, index) => ({
         id: Number(item.id ?? index + 1) || index + 1,
         email: String(item.email ?? `${item.firstName ?? "user"}@eray.com`),
         firstName: String(item.firstName ?? String(item.name ?? "").split(" ")[0] ?? "User"),
-        lastName: String(item.lastName ?? String(item.name ?? "").split(" ").slice(1).join(" ") ?? ""),
+        lastName: String(
+          item.lastName ??
+            String(item.name ?? "")
+              .split(" ")
+              .slice(1)
+              .join(" ") ??
+            "",
+        ),
         fullName: String(
           item.fullName ?? item.name ?? `${item.firstName ?? "User"} ${item.lastName ?? ""}`.trim(),
         ),

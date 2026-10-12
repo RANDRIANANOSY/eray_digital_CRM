@@ -14,8 +14,11 @@ import {
   Edit,
   Trash2,
   X,
+  FileSpreadsheet,
 } from "lucide-react";
+import { ImportExportModal } from "@/components/ImportExportModal";
 import { useClients, useDeleteClient, useUpdateClient } from "@/hooks/api/useClients";
+
 import { useUsers } from "@/hooks/api/useUsers";
 import { NewClientDialog } from "@/components/quick-create-dialogs";
 import { ConfirmDialog, type ConfirmDialogState } from "@/components/confirm-dialog";
@@ -77,6 +80,7 @@ export default function ClientsPage() {
   const [selectedPriorities, setSelectedPriorities] = useState<Priority[]>([]);
   const [selectedOwner, setSelectedOwner] = useState<number | undefined>(undefined);
   const [page, setPage] = useState(1);
+  const [importExportOpen, setImportExportOpen] = useState(false);
 
   const { data: usersData } = useUsers();
   const { data, isLoading, isError, error } = useClients({
@@ -176,12 +180,14 @@ export default function ClientsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!data}>
-            <Download className="h-4 w-4 mr-1.5" /> Exporter
+          <Button variant="outline" size="sm" onClick={() => setImportExportOpen(true)}>
+            <FileSpreadsheet className="h-4 w-4 mr-1.5 text-blue-600" /> Import / Export CSV
           </Button>
           <NewClientDialog />
         </div>
       </div>
+
+      <ImportExportModal isOpen={importExportOpen} onClose={() => setImportExportOpen(false)} />
 
       {/* Filtres */}
       <div className="card-elegant p-3 flex flex-wrap items-center gap-2 animate-fade-in-up">

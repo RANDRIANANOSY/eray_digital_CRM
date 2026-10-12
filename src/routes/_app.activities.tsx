@@ -193,7 +193,9 @@ export default function ActivitiesPage() {
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold">Activités</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {data ? `${data.meta.total} activité${data.meta.total > 1 ? "s" : ""} au total` : "Chargement…"}
+              {data
+                ? `${data.meta.total} activité${data.meta.total > 1 ? "s" : ""} au total`
+                : "Chargement…"}
             </p>
           </div>
         </div>
@@ -358,7 +360,10 @@ export default function ActivitiesPage() {
 
               <div className="flex-1 min-w-0 space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-semibold text-sm text-foreground leading-snug truncate max-w-full" title={a.title}>
+                  <h4
+                    className="font-semibold text-sm text-foreground leading-snug truncate max-w-full"
+                    title={a.title}
+                  >
                     {a.title}
                   </h4>
                   <StatusBadge status={a.status} />
@@ -830,8 +835,7 @@ function WorkflowDialog({ parent, onClose }: { parent: ActivityDto; onClose: () 
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <span className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400/20 to-primary/15 border border-amber-400/30 flex items-center justify-center text-lg shrink-0">
-            </span>
+            <span className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400/20 to-primary/15 border border-amber-400/30 flex items-center justify-center text-lg shrink-0"></span>
             Activité terminée !
           </DialogTitle>
         </DialogHeader>
