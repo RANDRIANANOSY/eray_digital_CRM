@@ -2,9 +2,9 @@ name: Cypress E2E Tests with Code Coverage
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, role]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, role]
 
 jobs:
   cypress-run:
