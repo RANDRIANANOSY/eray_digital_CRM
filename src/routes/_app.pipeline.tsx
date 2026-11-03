@@ -9,8 +9,11 @@ import {
   Search,
   X,
   FileText,
+  Target,
+  Trophy,
+  TrendingUp,
 } from "lucide-react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { OPPORTUNITY_STAGES } from "@/lib/api/types";
 import type { OpportunityDto, OpportunityStage } from "@/lib/api/types";
@@ -93,6 +96,13 @@ export default function PipelinePage() {
 
   const total = filteredDeals.reduce((s, d) => s + d.amount, 0);
   const won = filteredDeals.filter((d) => d.isWon).reduce((s, d) => s + d.amount, 0);
+  const weighted = filteredDeals.reduce((s, d) => s + (d.amount * d.probability) / 100, 0);
+  const conversionRate =
+    filteredDeals.length > 0
+      ? Math.round(
+          (filteredDeals.filter((d) => d.isWon).length / filteredDeals.length) * 100,
+        )
+      : 0;
 
   const handleDrop = async (deal: OpportunityDto, newStage: OpportunityStage) => {
     if (deal.stage === newStage) return;
@@ -146,7 +156,7 @@ export default function PipelinePage() {
           <h1 className="text-2xl lg:text-3xl font-bold">Pipeline commercial</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {data
-              ? `${filteredDeals.length} opportunités • ${(total / 1000).toFixed(0)} K MGA potentiel • ${(won / 1000).toFixed(0)} K MGA signés`
+              ? `${filteredDeals.length} opportunités • ${(total / 1000).toFixed(0)} K MGA potentiel brut • ${(weighted / 1000).toFixed(0)} K MGA prévisionnel pondéré`
               : "Chargement…"}
           </p>
         </div>
@@ -168,6 +178,54 @@ export default function PipelinePage() {
           <NewOpportunityDialog />
         </div>
       </div>
+
+      {/* Mini KPIs Pipeline */}
+      {data && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-in-up">
+          <div className="card-elegant p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase">Affaires actives</p>
+              <p className="text-lg font-bold mt-0.5">{filteredDeals.length}</p>
+            </div>
+            <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary grid place-items-center font-bold text-xs">
+              📊
+            </span>
+          </div>
+          <div className="card-elegant p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase">CA Potentiel Brut</p>
+              <p className="text-lg font-bold text-amber-600 mt-0.5">
+                {(total / 1000).toFixed(0)} K MGA
+              </p>
+            </div>
+            <span className="h-8 w-8 rounded-lg bg-amber-500/10 text-amber-600 grid place-items-center font-bold text-xs">
+              💰
+            </span>
+          </div>
+          <div className="card-elegant p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase">CA Pondéré (Prévision)</p>
+              <p className="text-lg font-bold text-indigo-600 mt-0.5">
+                {(weighted / 1000).toFixed(0)} K MGA
+              </p>
+            </div>
+            <span className="h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-600 grid place-items-center font-bold text-xs">
+              📈
+            </span>
+          </div>
+          <div className="card-elegant p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase">Gagné ({conversionRate}%)</p>
+              <p className="text-lg font-bold text-emerald-600 mt-0.5">
+                {(won / 1000).toFixed(0)} K MGA
+              </p>
+            </div>
+            <span className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 grid place-items-center font-bold text-xs">
+              🏆
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="card-elegant p-3 flex flex-wrap items-center gap-2">
@@ -243,19 +301,25 @@ export default function PipelinePage() {
             {OPPORTUNITY_STAGES.map((stage) => {
               const items = filteredDeals.filter((d) => d.stage === stage);
               const sum = items.reduce((s, d) => s + d.amount, 0);
+              const sumWeighted = items.reduce((s, d) => s + (d.amount * d.probability) / 100, 0);
               return (
                 <div key={stage} className="w-72 shrink-0">
                   <div className="flex items-center justify-between mb-2.5 px-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`h-2 w-2 rounded-full ${stageColors[stage]}`} />
-                      <h3 className="text-sm font-semibold">{stage}</h3>
-                      <span className="text-[11px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${stageColors[stage]}`} />
+                      <h3 className="text-sm font-semibold truncate">{stage}</h3>
+                      <span className="text-[11px] font-bold text-muted-foreground bg-muted px-1.5 py-0.5 rounded shrink-0">
                         {items.length}
                       </span>
                     </div>
-                    <span className="text-[11px] font-semibold text-muted-foreground">
-                      {(sum / 1000).toFixed(0)} K MGA
-                    </span>
+                    <div className="text-right shrink-0">
+                      <div className="text-[11px] font-bold text-foreground">
+                        {(sum / 1000).toFixed(0)} K MGA
+                      </div>
+                      <div className="text-[9px] text-muted-foreground font-medium">
+                        Pondéré : {(sumWeighted / 1000).toFixed(0)} K
+                      </div>
+                    </div>
                   </div>
                   <div
                     className="bg-muted/40 rounded-xl p-2 space-y-2 min-h-[500px]"
@@ -274,10 +338,17 @@ export default function PipelinePage() {
                         className="bg-card rounded-lg p-3 border border-border hover:shadow-float hover:border-primary/30 cursor-grab active:cursor-grabbing transition-all group"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <div className="text-sm font-semibold truncate">{d.clientName}</div>
+                          <div className="min-w-0 flex-1">
+                            <Link
+                              to={`/clients/${d.clientId}`}
+                              className="text-sm font-semibold truncate hover:text-primary transition-colors block"
+                              title={`Consulter la fiche client de ${d.clientName}`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {d.clientName}
+                            </Link>
                             <div className="text-[11px] text-muted-foreground truncate">
-                              {d.company}
+                              {d.company ?? "Particulier"}
                             </div>
                           </div>
                           <button
@@ -302,7 +373,15 @@ export default function PipelinePage() {
                             {d.probability}%
                           </span>
                         </div>
-                        <div className="mt-3 pt-3 border-t border-border space-y-1.5">
+                        {d.nextAction && (
+                          <div className="mt-2.5 p-1.5 rounded-md bg-primary/8 border border-primary/20 flex items-center gap-1.5 text-xs text-primary">
+                            <Target className="h-3.5 w-3.5 shrink-0" />
+                            <span className="text-[10px] font-medium truncate">
+                              <strong className="font-semibold">Action :</strong> {d.nextAction}
+                            </span>
+                          </div>
+                        )}
+                        <div className="mt-2.5 pt-2.5 border-t border-border space-y-1">
                           {d.closeDate && (
                             <div className="flex items-center gap-1.5 text-[11px] text-foreground/70">
                               <CalendarIcon className="h-3 w-3" /> Clôture{" "}
@@ -317,17 +396,29 @@ export default function PipelinePage() {
                           )}
                         </div>
                         <div className="mt-2.5 flex items-center justify-between gap-2">
-                          <UserAvatar
-                            photo={d.ownerPhoto}
-                            name={d.ownerName}
-                            className="h-6 w-6"
-                            fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[9px] font-semibold"
-                          />
                           <div className="flex items-center gap-1.5 min-w-0">
-                            {d.nextAction && (
-                              <span className="text-[10px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded truncate max-w-[110px]">
-                                {d.nextAction}
-                              </span>
+                            <UserAvatar
+                              photo={d.ownerPhoto}
+                              name={d.ownerName}
+                              className="h-6 w-6"
+                              fallbackClassName="bg-gradient-to-br from-primary to-violet text-white text-[9px] font-semibold"
+                            />
+                            <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">
+                              {d.ownerName}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 min-w-0">
+                            {!d.isWon && d.stage !== "Vente perdue" && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDrop(d, "Vente gagnée");
+                                }}
+                                title="Marquer comme vente gagnée"
+                                className="text-[10px] font-medium text-emerald-700 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-200/60 px-1.5 py-0.5 rounded transition-colors inline-flex items-center gap-1"
+                              >
+                                <Trophy className="h-3 w-3" /> Gagné
+                              </button>
                             )}
                             {d.isWon && (
                               <button

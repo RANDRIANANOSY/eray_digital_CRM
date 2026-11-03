@@ -174,18 +174,69 @@ export default function ClientsPage() {
       {/* Header */}
       <div className="flex items-end justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">Clients</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold">Clients & Prospects</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {data ? `${data.meta.total} contacts` : "Chargement…"}
+            {data ? `${data.meta.total} contacts enregistrés • Valeur totale : ${(data.items.reduce((s, c) => s + c.value, 0) / 1000).toFixed(0)} K MGA` : "Chargement…"}
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setImportExportOpen(true)}>
+            <Download className="h-4 w-4 mr-1.5" /> Exporter
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setImportExportOpen(true)}>
             <FileSpreadsheet className="h-4 w-4 mr-1.5 text-blue-600" /> Import / Export CSV
           </Button>
           <NewClientDialog />
         </div>
       </div>
+
+      {/* Mini KPIs clients */}
+      {data && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 animate-fade-in-up">
+          <div className="card-elegant p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase">Total Contacts</p>
+              <p className="text-lg font-bold mt-0.5">{data.meta.total}</p>
+            </div>
+            <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary grid place-items-center font-bold text-xs">
+              👥
+            </span>
+          </div>
+          <div className="card-elegant p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase">Prospects</p>
+              <p className="text-lg font-bold text-blue-600 mt-0.5">
+                {data.items.filter((c) => c.status === "prospect").length}
+              </p>
+            </div>
+            <span className="h-8 w-8 rounded-lg bg-blue-500/10 text-blue-600 grid place-items-center font-bold text-xs">
+              🎯
+            </span>
+          </div>
+          <div className="card-elegant p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase">Clients Actifs / VIP</p>
+              <p className="text-lg font-bold text-emerald-600 mt-0.5">
+                {data.items.filter((c) => c.status === "actif" || c.status === "vip").length}
+              </p>
+            </div>
+            <span className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 grid place-items-center font-bold text-xs">
+              ⭐
+            </span>
+          </div>
+          <div className="card-elegant p-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase">Portefeuille page</p>
+              <p className="text-lg font-bold text-primary mt-0.5">
+                {(data.items.reduce((s, c) => s + c.value, 0) / 1000).toFixed(0)} K MGA
+              </p>
+            </div>
+            <span className="h-8 w-8 rounded-lg bg-primary/10 text-primary grid place-items-center font-bold text-xs">
+              💰
+            </span>
+          </div>
+        </div>
+      )}
 
       <ImportExportModal isOpen={importExportOpen} onClose={() => setImportExportOpen(false)} />
 
@@ -199,7 +250,7 @@ export default function ClientsPage() {
               setQuery(e.target.value);
               setPage(1);
             }}
-            placeholder="Rechercher un client, une entreprise…"
+            placeholder="Rechercher un client, une entreprise, un email…"
             className="w-full h-9 pl-9 pr-3 rounded-lg bg-muted/60 border border-transparent hover:bg-muted hover:border-border focus:bg-card focus:border-ring focus:ring-2 focus:ring-ring/15 outline-none text-sm transition-all duration-200"
           />
         </div>
@@ -291,110 +342,137 @@ export default function ClientsPage() {
           </p>
         </div>
       ) : view === "table" ? (
-        <div className="card-elegant overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
-              <tr>
-                <th className="text-left font-semibold px-4 py-3">Client</th>
-                <th className="text-left font-semibold px-4 py-3">Entreprise</th>
-                <th className="text-left font-semibold px-4 py-3">Statut</th>
-                <th className="text-left font-semibold px-4 py-3">Priorité</th>
-                <th className="text-left font-semibold px-4 py-3">Responsable</th>
-                <th className="text-right font-semibold px-4 py-3">Valeur</th>
-                <th className="text-right font-semibold px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((c) => (
-                <tr
-                  key={c.id}
-                  className="hover:bg-muted/30 transition-colors group border-b border-border/60 last:border-0"
-                >
-                  <td className="px-4 py-3">
-                    <Link to={`/clients/${c.id}`} className="flex items-center gap-2.5 min-w-0">
-                      <Avatar className="h-8 w-8 shrink-0">
-                        <AvatarFallback className="bg-gradient-to-br from-slate-500 to-slate-700 text-white text-[10px] font-semibold">
-                          {c.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="text-left min-w-0 leading-tight">
-                        <div className="font-semibold hover:text-primary transition-colors truncate text-sm">
-                          {c.name}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground truncate">{c.role}</div>
-                      </div>
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground truncate max-w-[160px]">
-                    {c.company}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border capitalize whitespace-nowrap ${statusMap[c.status] || "bg-muted text-foreground"}`}
-                    >
-                      {c.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <PriorityDot priority={c.priority} />
-                      <span className="text-xs capitalize">
-                        {priorityLabel[c.priority] ?? c.priority}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground truncate max-w-[140px]">
-                    <span className="flex items-center gap-1.5">
-                      <UserAvatar
-                        photo={c.ownerPhoto}
-                        name={c.ownerName}
-                        className="h-5 w-5 shrink-0"
-                        fallbackClassName="bg-primary/10 text-primary text-[8px] font-semibold"
-                      />
-                      <span className="truncate">{c.ownerName}</span>
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right font-semibold whitespace-nowrap">
-                    {c.value.toLocaleString("fr")} MGA
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-0.5">
-                      <Link
-                        to={`/clients/${c.id}`}
-                        className="h-7 px-2 rounded-md text-[10px] font-semibold bg-primary/10 text-primary hover:bg-primary/15 inline-flex items-center gap-1 whitespace-nowrap"
-                      >
-                        <Eye className="h-3 w-3" /> Ouvrir
-                      </Link>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button className="hover:bg-muted p-1 rounded transition-colors">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedClient(c);
-                              setEditOpen(true);
-                            }}
-                          >
-                            <Edit className="mr-2 h-4 w-4" /> Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:bg-destructive/10"
-                            onClick={() => handleDelete(c)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" /> Supprimer
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </td>
+        <div className="card-elegant overflow-hidden rounded-xl border border-border/60">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/40 border-b border-border/70">
+                  <th className="text-left font-medium text-muted-foreground px-4 py-2.5">Client</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-2.5">Entreprise</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-2.5">Statut</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-2.5">Priorité</th>
+                  <th className="text-left font-medium text-muted-foreground px-4 py-2.5">Responsable</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-2.5">Valeur</th>
+                  <th className="text-right font-medium text-muted-foreground px-4 py-2.5">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {data.items.map((c) => (
+                  <tr
+                    key={c.id}
+                    className="hover:bg-muted/20 transition-colors"
+                  >
+                    <td className="px-4 py-2.5">
+                      <Link to={`/clients/${c.id}`} className="flex items-center gap-3 min-w-0">
+                        <Avatar className="h-9 w-9 shrink-0">
+                          <AvatarFallback className="bg-muted text-foreground text-xs font-medium">
+                            {c.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="text-left min-w-0 leading-tight">
+                          <div className="font-medium hover:text-primary transition-colors truncate">
+                            {c.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate">{c.role || "—"}</div>
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="font-medium truncate max-w-[200px]">{c.company ?? "—"}</div>
+                      {(c.city || c.sector) && (
+                        <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                          {[c.city, c.sector].filter(Boolean).join(" • ")}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span
+                        className={`inline-flex items-center text-xs px-2 py-0.5 rounded-md capitalize whitespace-nowrap ${statusMap[c.status] || "bg-muted text-foreground"}`}
+                      >
+                        {c.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <PriorityDot priority={c.priority} />
+                        <span className="text-sm capitalize">
+                          {priorityLabel[c.priority] ?? c.priority}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="flex items-center gap-2 max-w-[160px]">
+                        <UserAvatar
+                          photo={c.ownerPhoto}
+                          name={c.ownerName}
+                          className="h-6 w-6 shrink-0"
+                          fallbackClassName="bg-primary/10 text-primary text-[9px] font-medium"
+                        />
+                        <span className="truncate text-sm">{c.ownerName}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                      <span className="font-medium">{c.value.toLocaleString("fr")} MGA</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center justify-end gap-1">
+                        {c.phone && (
+                          <a
+                            href={`tel:${c.phone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            title={`Appeler ${c.phone}`}
+                            className="h-8 w-8 rounded-md grid place-items-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          >
+                            <Phone className="h-4 w-4" />
+                          </a>
+                        )}
+                        {c.email && (
+                          <a
+                            href={`mailto:${c.email}`}
+                            onClick={(e) => e.stopPropagation()}
+                            title={`Écrire à ${c.email}`}
+                            className="h-8 w-8 rounded-md grid place-items-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                          >
+                            <Mail className="h-4 w-4" />
+                          </a>
+                        )}
+                        <Link
+                          to={`/clients/${c.id}`}
+                          className="h-8 px-2.5 rounded-md text-sm hover:bg-muted inline-flex items-center gap-1.5 whitespace-nowrap transition-colors"
+                        >
+                          <Eye className="h-4 w-4" /> Voir
+                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="h-8 w-8 grid place-items-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedClient(c);
+                                setEditOpen(true);
+                              }}
+                            >
+                              <Edit className="mr-2 h-4 w-4" /> Modifier
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => handleDelete(c)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" /> Supprimer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -424,23 +502,45 @@ export default function ClientsPage() {
                   {c.status}
                 </span>
               </div>
-              <div className="mt-4 space-y-1.5 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Mail className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{c.email}</span>
-                </div>
-                <div className="flex items-center gap-2 min-w-0">
-                  <Phone className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{c.phone}</span>
+              <div className="mt-4 space-y-2 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between gap-2 min-w-0">
+                  <a
+                    href={`mailto:${c.email}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-2 min-w-0 hover:text-blue-600 transition-colors truncate"
+                    title={`Envoyer un email à ${c.email}`}
+                  >
+                    <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="truncate">{c.email}</span>
+                  </a>
+                  {c.phone && (
+                    <a
+                      href={`tel:${c.phone}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1 rounded hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors shrink-0"
+                      title={`Appeler ${c.phone}`}
+                    >
+                      <Phone className="h-3.5 w-3.5" />
+                    </a>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 min-w-0">
                   <MapPin className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">
-                    {c.city} • {c.sector}
+                    {[c.city, c.sector].filter(Boolean).join(" • ") || "Non spécifié"}
                   </span>
                 </div>
+                <div className="flex items-center gap-1.5 text-[11px] pt-1">
+                  <UserAvatar
+                    photo={c.ownerPhoto}
+                    name={c.ownerName}
+                    className="h-4 w-4 shrink-0"
+                    fallbackClassName="bg-primary/10 text-primary text-[7px] font-semibold"
+                  />
+                  <span className="truncate text-muted-foreground/80">Resp. {c.ownerName}</span>
+                </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-border flex items-center justify-between gap-2">
+              <div className="mt-4 pt-3 border-t border-border flex items-center justify-between gap-2">
                 <div className="flex gap-1 min-w-0 overflow-hidden flex-wrap">
                   {c.tags?.slice(0, 3).map((t) => (
                     <span

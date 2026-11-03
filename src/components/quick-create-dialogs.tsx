@@ -87,6 +87,16 @@ export function NewClientDialog(props: BaseProps) {
     const lastName = fd.get("lastName")?.toString().trim() || "";
     const fullName = `${firstName} ${lastName}`.trim();
 
+    const ownerIdRaw = fd.get("ownerId")?.toString();
+    const ownerId = ownerIdRaw ? Number(ownerIdRaw) : null;
+    const tagsRaw = fd.get("tags")?.toString() || "";
+    const tags = tagsRaw
+      ? tagsRaw
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+      : [];
+
     try {
       const client = await createClient.mutateAsync({
         name: fullName,
@@ -98,8 +108,9 @@ export function NewClientDialog(props: BaseProps) {
         sector: fd.get("sector")?.toString() || null,
         status: (fd.get("status")?.toString() as ClientStatus) || "prospect",
         priority: (fd.get("priority")?.toString() as Priority) || "medium",
-        tags: [],
+        tags,
         value: Number(fd.get("value")) || 0,
+        ownerId,
       });
 
       props.onAdd?.(client);
@@ -178,8 +189,18 @@ export function NewClientDialog(props: BaseProps) {
             <Field label="Secteur">
               <input name="sector" className={inputCls} placeholder="Ex : B2B Services" />
             </Field>
+            <Field label="Responsable assigné">
+              <OwnerSelect name="ownerId" />
+            </Field>
+            <Field label="Tags (séparés par virgules)">
+              <input
+                name="tags"
+                className={inputCls}
+                placeholder="Ex : PME, Lead chaud, B2B"
+              />
+            </Field>
             <Field label="Adresse / Ville" className="col-span-2">
-              <input name="address" className={inputCls} placeholder="Paris, France" />
+              <input name="address" className={inputCls} placeholder="Antananarivo, Madagascar" />
             </Field>
           </div>
           <DialogFooter>

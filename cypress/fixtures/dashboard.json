@@ -1,17 +1,43 @@
 {
   "success": true,
   "data": {
-    "totalClients": 2,
-    "prospects": 1,
-    "activeClients": 1,
-    "totalOpportunityValue": 11500000,
-    "wonOpportunities": 1,
-    "lostOpportunities": 0,
-    "upcomingActivities": 1,
-    "overdueTasks": 0,
-    "revenueByMonth": {},
-    "clientsByStatus": {},
-    "opportunitiesByStage": {}
+    "totalClients": 6,
+    "prospects": 2,
+    "activeClients": 4,
+    "totalOpportunityValue": 482000000,
+    "wonOpportunities": 8,
+    "lostOpportunities": 1,
+    "upcomingActivities": 3,
+    "overdueTasks": 1,
+    "revenueByMonth": {
+      "2025-11": 32000000,
+      "2025-12": 58000000,
+      "2026-01": 45000000,
+      "2026-02": 82000000,
+      "2026-03": 65000000,
+      "2026-04": 115000000,
+      "2026-05": 78000000,
+      "2026-06": 140000000,
+      "2026-07": 95000000,
+      "2026-08": 165000000,
+      "2026-09": 125000000,
+      "2026-10": 185000000
+    },
+    "clientsByStatus": {
+      "prospect": 2,
+      "actif": 3,
+      "vip": 1
+    },
+    "opportunitiesByStage": {
+      "Nouveau lead": 1,
+      "Qualification": 1,
+      "Analyse des besoins": 1,
+      "Devis envoyé": 2,
+      "Négociation": 2,
+      "Contrat signé": 1,
+      "Vente gagnée": 8,
+      "Vente perdue": 1
+    }
   },
   "message": null,
   "errors": []

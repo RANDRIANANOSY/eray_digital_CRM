@@ -1,8 +1,14 @@
 import { lazy, Suspense } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router";
-import RootLayout from "./routes/root.tsx";
+import { createBrowserRouter, RouterProvider, Navigate, useLocation } from "react-router";
+import RootLayout, { ErrorBoundary } from "./routes/root.tsx";
 import AppLayout from "./routes/_app.tsx";
 import { PageLoader } from "./components/page-loader.tsx";
+
+function AppPrefixRedirect() {
+  const location = useLocation();
+  const cleanPath = location.pathname.replace(/^\/app(\/|$)/, "/") || "/";
+  return <Navigate to={cleanPath + location.search} replace />;
+}
 
 const Login = lazy(() => import("./routes/login.tsx"));
 const Signup = lazy(() => import("./routes/signup.tsx"));
@@ -25,7 +31,16 @@ const routes = [
   {
     path: "/",
     element: <RootLayout />,
+    errorElement: <ErrorBoundary />,
     children: [
+      {
+        path: "app",
+        element: <AppPrefixRedirect />,
+      },
+      {
+        path: "app/*",
+        element: <AppPrefixRedirect />,
+      },
       {
         path: "login",
         element: <Login />,
@@ -94,6 +109,10 @@ const routes = [
             element: <Settings />,
           },
         ],
+      },
+      {
+        path: "*",
+        element: <Navigate to="/" replace />,
       },
     ],
   },

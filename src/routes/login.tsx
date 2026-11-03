@@ -33,14 +33,6 @@ export default function Login() {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
 
-  const handleQuickLogin = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword("Demo1234!");
-    toast.success("Champs pré-remplis !", {
-      description: `Identifiants pour ${demoEmail} ajoutés. Cliquez sur Se connecter.`,
-      duration: 2000,
-    });
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -139,29 +131,25 @@ export default function Login() {
           {/* Footer note in left panel */}
           <div className="z-10 text-[11px] text-blue-200/80 font-medium">Version MVP 1.0</div>
 
-          {/* SVG Cloud Wave Divider for Desktop (Right edge of left panel) */}
-          <div className="hidden md:block absolute top-0 bottom-0 -right-1 w-16 h-full pointer-events-none z-20">
+          {/* SVG Clean Simple Curve Divider for Desktop (Right edge of left panel) */}
+          <div className="hidden md:block absolute top-0 bottom-0 -right-1 w-12 h-full pointer-events-none z-20">
             <svg
               className="h-full w-full text-white dark:text-card fill-current"
               viewBox="0 0 100 800"
               preserveAspectRatio="none"
             >
-              <path
-                d="M100,0 L0,0 C50,60 70,120 30,180 C80,240 60,320 20,380 C70,440 80,520 30,580 C80,640 50,720 0,800 L100,800 Z"
-                className="opacity-30 fill-blue-300"
-              />
-              <path d="M100,0 L20,0 C65,70 80,140 40,200 C85,260 70,340 35,400 C80,460 85,540 40,600 C85,660 60,740 20,800 L100,800 Z" />
+              <path d="M100,0 L25,0 Q70,400 25,800 L100,800 Z" />
             </svg>
           </div>
 
-          {/* SVG Cloud Wave Divider for Mobile (Bottom edge of top blue banner) */}
-          <div className="block md:hidden absolute bottom-0 left-0 right-0 h-10 w-full pointer-events-none z-20 translate-y-[1px]">
+          {/* SVG Clean Simple Curve Divider for Mobile (Bottom edge of top blue banner) */}
+          <div className="block md:hidden absolute bottom-0 left-0 right-0 h-8 w-full pointer-events-none z-20 translate-y-[1px]">
             <svg
               className="w-full h-full text-white dark:text-card fill-current"
               viewBox="0 0 800 100"
               preserveAspectRatio="none"
             >
-              <path d="M0,0 Q200,80 400,30 Q600,90 800,10 L800,100 L0,100 Z" />
+              <path d="M0,0 Q400,30 800,0 L800,100 L0,100 Z" />
             </svg>
           </div>
         </div>
@@ -317,37 +305,60 @@ export default function Login() {
               </div>
             </form>
 
-            {/* Quick login credentials picker */}
-            <div
-              className="mt-6 pt-5 border-t border-slate-100 dark:border-border/30 text-left animate-fade-in-up"
-              style={{ animationDelay: "400ms" }}
-            >
-              <h2 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5">
-                Comptes de test (Sélection rapide)
-              </h2>
-              <div className="grid grid-cols-2 gap-2">
+            {/* Comptes de démonstration / Remplissage rapide */}
+            <div className="mt-6 pt-5 border-t border-slate-100 dark:border-border/40 text-left">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                Comptes de démonstration (cliquez pour remplir) :
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button
                   type="button"
-                  onClick={() => handleQuickLogin("admin@eray.com")}
-                  className="p-2.5 border border-slate-200 dark:border-border/30 rounded-xl hover:bg-slate-50 dark:hover:bg-muted/30 hover:border-primary/30 hover:shadow-elegant text-left transition-all duration-200 text-xs group"
+                  onClick={() => {
+                    setEmail("admin@eray.com");
+                    setPassword("Demo1234!");
+                    setError("");
+                  }}
+                  className="p-3 rounded-xl border border-slate-200 dark:border-border/60 hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 text-left transition-all group cursor-pointer"
                 >
-                  <div className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                    AE (Admin)
+                  <div className="flex items-center justify-between font-semibold text-xs text-foreground group-hover:text-blue-600 mb-0.5">
+                    <span>👑 Administrateur</span>
+                    <span className="text-[10px] text-blue-600 font-medium opacity-80 group-hover:opacity-100">
+                      Remplir ↵
+                    </span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground truncate">admin@eray.com</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-300 font-mono">
+                    admin@eray.com
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">
+                    Mot de passe : <span className="font-mono text-foreground/80 font-medium">Demo1234!</span>
+                  </div>
                 </button>
+
                 <button
                   type="button"
-                  onClick={() => handleQuickLogin("yanis@eray.com")}
-                  className="p-2.5 border border-slate-200 dark:border-border/30 rounded-xl hover:bg-slate-50 dark:hover:bg-muted/30 hover:border-primary/30 hover:shadow-elegant text-left transition-all duration-200 text-xs group"
+                  onClick={() => {
+                    setEmail("yanis@eray.com");
+                    setPassword("Demo1234!");
+                    setError("");
+                  }}
+                  className="p-3 rounded-xl border border-slate-200 dark:border-border/60 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 text-left transition-all group cursor-pointer"
                 >
-                  <div className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                    YM (Commercial)
+                  <div className="flex items-center justify-between font-semibold text-xs text-foreground group-hover:text-emerald-600 mb-0.5">
+                    <span>💼 Commercial</span>
+                    <span className="text-[10px] text-emerald-600 font-medium opacity-80 group-hover:opacity-100">
+                      Remplir ↵
+                    </span>
                   </div>
-                  <div className="text-[10px] text-muted-foreground truncate">yanis@eray.com</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-300 font-mono">
+                    yanis@eray.com
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">
+                    Mot de passe : <span className="font-mono text-foreground/80 font-medium">Demo1234!</span>
+                  </div>
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       </div>
